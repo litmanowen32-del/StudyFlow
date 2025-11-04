@@ -1,4 +1,4 @@
-import { Calendar, CheckSquare, Clock, BarChart3, Target, Settings, Flame, Repeat, LogOut } from "lucide-react";
+import { Calendar, CheckSquare, Clock, BarChart3, Target, Settings, Flame, Repeat, LogOut, BookOpen } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +16,7 @@ const Navigation = () => {
     { icon: Flame, label: "Habits", path: "/habits" },
     { icon: Repeat, label: "Routines", path: "/routines" },
     { icon: BarChart3, label: "Analytics", path: "/analytics" },
+    { icon: BookOpen, label: "Study Assistant", path: "/study-assistant" },
     { icon: Target, label: "Goals", path: "/goals" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
