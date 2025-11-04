@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HourlyCalendar } from "@/components/HourlyCalendar";
 import { MonthlyCalendar } from "@/components/MonthlyCalendar";
+import { PendingTasks } from "@/components/PendingTasks";
 
 const Calendar = () => {
   const [view, setView] = useState<"hourly" | "monthly">("hourly");
@@ -21,6 +22,8 @@ const Calendar = () => {
           Drag, resize, and schedule with AI-powered time suggestions
         </p>
       </div>
+
+      <PendingTasks />
 
       <Tabs value={view} onValueChange={(v) => setView(v as "hourly" | "monthly")} className="space-y-4">
         <TabsList className="grid w-full max-w-md grid-cols-2">

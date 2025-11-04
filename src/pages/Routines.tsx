@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Clock, Sparkles } from "lucide-react";
+import { Plus, Clock, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -148,6 +148,17 @@ const Routines = () => {
                     <span className="capitalize">{routine.schedule_type}</span>
                   </div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={async () => {
+                    await supabase.from("routines").delete().eq("id", routine.id);
+                    toast({ title: "Routine deleted" });
+                    fetchRoutines();
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             </Card>
           ))}

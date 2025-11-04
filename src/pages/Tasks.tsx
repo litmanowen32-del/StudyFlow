@@ -46,57 +46,20 @@ const Tasks = () => {
       return;
     }
 
-    const { data: taskData, error } = await supabase.from("tasks").insert({
+    const { error } = await supabase.from("tasks").insert({
       user_id: user?.id,
       title: newTask.title,
       description: newTask.description,
       priority: newTask.priority,
       subject: newTask.subject,
       due_date: newTask.due_date || null,
-    }).select().single();
+    });
 
-    if (!error && taskData) {
-      // Get AI estimation for task duration
-      try {
-        const { data: estimateData } = await supabase.functions.invoke('estimate-task-duration', {
-          body: {
-            title: taskData.title,
-            description: taskData.description,
-            priority: taskData.priority,
-            subject: taskData.subject
-          }
-        });
-
-        if (estimateData?.hours && taskData.due_date) {
-          // Create calendar event for the task
-          const dueDate = new Date(taskData.due_date);
-          const startTime = new Date(dueDate);
-          startTime.setHours(Math.max(9, dueDate.getHours() - Math.ceil(estimateData.hours)), 0, 0, 0);
-          const endTime = new Date(startTime);
-          endTime.setHours(startTime.getHours() + estimateData.hours);
-
-          await supabase.from("calendar_events").insert({
-            user_id: user?.id,
-            title: `📝 ${taskData.title}`,
-            description: `${taskData.description || ''}\n\nAI estimated duration: ${estimateData.hours} hours\nPriority: ${taskData.priority}`,
-            start_time: startTime.toISOString(),
-            end_time: endTime.toISOString(),
-            event_type: "assignment",
-            subject: taskData.subject
-          });
-
-          toast({ 
-            title: "Task created!", 
-            description: `Added to calendar with ${estimateData.hours}h estimated time` 
-          });
-        } else {
-          toast({ title: "Task created!" });
-        }
-      } catch (err) {
-        console.error("Error creating calendar event:", err);
-        toast({ title: "Task created!" });
-      }
-
+    if (!error) {
+      toast({ 
+        title: "Task created!", 
+        description: "Visit the Calendar to schedule it with AI"
+      });
       setNewTask({ title: "", description: "", priority: "medium", subject: "", due_date: "" });
       setOpen(false);
       fetchTasks();

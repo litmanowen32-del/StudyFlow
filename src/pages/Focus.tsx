@@ -66,6 +66,11 @@ const Focus = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
   };
 
+  const handleFastForward = () => {
+    setTimeLeft(0);
+    handleSessionComplete();
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -113,6 +118,14 @@ const Focus = () => {
             >
               <RotateCcw className="h-5 w-5" />
               Reset
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={handleFastForward}
+              disabled={!isActive}
+            >
+              Fast Forward
             </Button>
           </div>
 

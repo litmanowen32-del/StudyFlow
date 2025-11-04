@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Flame, Check, Sparkles } from "lucide-react";
+import { Plus, Flame, Check, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -140,6 +140,17 @@ const HabitTracker = () => {
                   className="shrink-0"
                 >
                   <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={async () => {
+                    await supabase.from("habits").delete().eq("id", habit.id);
+                    toast({ title: "Habit deleted" });
+                    fetchHabits();
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </Card>

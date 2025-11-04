@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { format, addDays, startOfWeek, addHours, isSameDay, parseISO, startOfDay } from "date-fns";
+import { format, addDays, startOfWeek, addHours, isSameDay, parseISO } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Sparkles, Trash2, Edit } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Plus, Trash2, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface CalendarEvent {
   id: string;
@@ -21,6 +22,9 @@ interface CalendarEvent {
   event_type: string;
   subject?: string;
   user_id: string;
+  calendar_view?: string;
+  is_recurring?: boolean;
+  recurring_days?: number[];
 }
 
 export const HourlyCalendar = () => {
@@ -28,9 +32,8 @@ export const HourlyCalendar = () => {
   const { toast } = useToast();
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [timeIncrement, setTimeIncrement] = useState(60); // minutes
+  const [timeIncrement, setTimeIncrement] = useState(60);
   const [draggedEvent, setDraggedEvent] = useState<CalendarEvent | null>(null);
-  const [resizingEvent, setResizingEvent] = useState<{ event: CalendarEvent; edge: 'top' | 'bottom' } | null>(null);
   const [editDialog, setEditDialog] = useState<{ open: boolean; event?: CalendarEvent }>({ open: false });
   const [createDialog, setCreateDialog] = useState<{ open: boolean; day?: Date; hour?: number }>({ open: false });
   const [newEvent, setNewEvent] = useState({
@@ -38,9 +41,10 @@ export const HourlyCalendar = () => {
     description: "",
     event_type: "study",
     subject: "",
-    duration: 1
+    duration: 1,
+    applyToMultipleDays: false,
+    selectedDays: [] as number[]
   });
-  const [isSuggesting, setIsSuggesting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
@@ -57,64 +61,11 @@ export const HourlyCalendar = () => {
       .from("calendar_events")
       .select("*")
       .eq("user_id", user?.id)
+      .in("calendar_view", ["hourly", "both"])
       .gte("start_time", weekStart.toISOString())
       .lte("start_time", weekEnd.toISOString());
     
     if (!error && data) setEvents(data);
-  };
-
-  const handleSuggestTimeSlots = async () => {
-    setIsSuggesting(true);
-    try {
-      const { data: tasks } = await supabase
-        .from("tasks")
-        .select("*")
-        .eq("user_id", user?.id)
-        .eq("completed", false);
-
-      const { data, error } = await supabase.functions.invoke('suggest-time-slots', {
-        body: {
-          tasks: tasks || [],
-          existingEvents: events,
-          startDate: weekStart.toISOString(),
-          endDate: addDays(weekStart, 7).toISOString()
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.suggestions && data.suggestions.length > 0) {
-        // Create calendar events from suggestions
-        for (const suggestion of data.suggestions) {
-          const task = tasks?.find(t => t.id === suggestion.task_id);
-          if (task) {
-            await supabase.from("calendar_events").insert({
-              user_id: user?.id,
-              title: task.title,
-              description: `${task.description || ''}\n\nAI Suggestion: ${suggestion.reason}`,
-              start_time: suggestion.suggested_start,
-              end_time: suggestion.suggested_end,
-              event_type: "study",
-              subject: task.subject
-            });
-          }
-        }
-        
-        toast({
-          title: "Time slots suggested!",
-          description: `Added ${data.suggestions.length} suggested study sessions`,
-        });
-        fetchEvents();
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to suggest time slots",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSuggesting(false);
-    }
   };
 
   const handleDragStart = (e: React.DragEvent, event: CalendarEvent) => {
@@ -152,22 +103,6 @@ export const HourlyCalendar = () => {
       fetchEvents();
     }
     setDraggedEvent(null);
-  };
-
-  const handleResizeStart = (e: React.MouseEvent, event: CalendarEvent, edge: 'top' | 'bottom') => {
-    e.stopPropagation();
-    setResizingEvent({ event, edge });
-  };
-
-  const handleResizeMove = (e: MouseEvent) => {
-    if (!resizingEvent || !containerRef.current) return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const y = e.clientY - rect.top;
-    const hourHeight = rect.height / 24;
-    const newHour = Math.floor(y / hourHeight);
-    
-    // Will be implemented with mouse move tracking
   };
 
   const handleDeleteEvent = async (eventId: string) => {
@@ -210,22 +145,74 @@ export const HourlyCalendar = () => {
     startTime.setHours(createDialog.hour || 9, 0, 0, 0);
     const endTime = addHours(startTime, newEvent.duration);
 
-    const { error } = await supabase.from("calendar_events").insert({
-      user_id: user?.id,
-      title: newEvent.title,
-      description: newEvent.description,
-      start_time: startTime.toISOString(),
-      end_time: endTime.toISOString(),
-      event_type: newEvent.event_type,
-      subject: newEvent.subject
-    });
+    if (newEvent.applyToMultipleDays && newEvent.selectedDays.length > 0) {
+      const eventsToCreate = newEvent.selectedDays.map(dayIndex => {
+        const eventDay = addDays(weekStart, dayIndex);
+        const eventStart = new Date(eventDay);
+        eventStart.setHours(createDialog.hour || 9, 0, 0, 0);
+        const eventEnd = addHours(eventStart, newEvent.duration);
 
-    if (!error) {
-      toast({ title: "Event created!" });
-      setNewEvent({ title: "", description: "", event_type: "study", subject: "", duration: 1 });
-      setCreateDialog({ open: false });
-      fetchEvents();
+        return {
+          user_id: user?.id,
+          title: newEvent.title,
+          description: newEvent.description,
+          start_time: eventStart.toISOString(),
+          end_time: eventEnd.toISOString(),
+          event_type: newEvent.event_type,
+          subject: newEvent.subject,
+          calendar_view: "hourly",
+          is_recurring: true,
+          recurring_days: newEvent.selectedDays
+        };
+      });
+
+      const { error } = await supabase.from("calendar_events").insert(eventsToCreate);
+
+      if (!error) {
+        toast({ title: `${eventsToCreate.length} events created!` });
+        resetCreateDialog();
+        fetchEvents();
+      }
+    } else {
+      const { error } = await supabase.from("calendar_events").insert({
+        user_id: user?.id,
+        title: newEvent.title,
+        description: newEvent.description,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        event_type: newEvent.event_type,
+        subject: newEvent.subject,
+        calendar_view: "hourly"
+      });
+
+      if (!error) {
+        toast({ title: "Event created!" });
+        resetCreateDialog();
+        fetchEvents();
+      }
     }
+  };
+
+  const resetCreateDialog = () => {
+    setNewEvent({ 
+      title: "", 
+      description: "", 
+      event_type: "study", 
+      subject: "", 
+      duration: 1,
+      applyToMultipleDays: false,
+      selectedDays: []
+    });
+    setCreateDialog({ open: false });
+  };
+
+  const toggleDaySelection = (dayIndex: number) => {
+    setNewEvent(prev => ({
+      ...prev,
+      selectedDays: prev.selectedDays.includes(dayIndex)
+        ? prev.selectedDays.filter(d => d !== dayIndex)
+        : [...prev.selectedDays, dayIndex]
+    }));
   };
 
   const getEventColor = (type: string) => {
@@ -271,14 +258,11 @@ export const HourlyCalendar = () => {
         
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSuggestTimeSlots}
-            disabled={isSuggesting}
-            className="gap-2"
+            onClick={() => setCreateDialog({ open: true, day: new Date(), hour: 9 })}
+            className="gap-2 bg-gradient-primary"
           >
-            <Sparkles className="h-4 w-4" />
-            {isSuggesting ? "Suggesting..." : "AI Suggest Times"}
+            <Plus className="h-4 w-4" />
+            Add Event
           </Button>
           <Button
             variant="outline"
@@ -376,14 +360,6 @@ export const HourlyCalendar = () => {
                           </button>
                         </div>
                       </div>
-                      <div
-                        className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-white/30"
-                        onMouseDown={(e) => handleResizeStart(e, event, 'top')}
-                      />
-                      <div
-                        className="absolute bottom-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-white/30"
-                        onMouseDown={(e) => handleResizeStart(e, event, 'bottom')}
-                      />
                     </div>
                   );
                 })}
@@ -468,7 +444,7 @@ export const HourlyCalendar = () => {
       </Dialog>
 
       <Dialog open={createDialog.open} onOpenChange={(open) => setCreateDialog({ open })}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Event</DialogTitle>
           </DialogHeader>
@@ -489,23 +465,36 @@ export const HourlyCalendar = () => {
                 placeholder="Additional details..."
               />
             </div>
-            <div>
-              <Label>Event Type</Label>
-              <Select
-                value={newEvent.event_type}
-                onValueChange={(value) => setNewEvent({ ...newEvent, event_type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="class">Class</SelectItem>
-                  <SelectItem value="exam">Exam</SelectItem>
-                  <SelectItem value="assignment">Assignment</SelectItem>
-                  <SelectItem value="study">Study Session</SelectItem>
-                  <SelectItem value="meeting">Meeting</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Event Type</Label>
+                <Select
+                  value={newEvent.event_type}
+                  onValueChange={(value) => setNewEvent({ ...newEvent, event_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="class">Class</SelectItem>
+                    <SelectItem value="exam">Exam</SelectItem>
+                    <SelectItem value="assignment">Assignment</SelectItem>
+                    <SelectItem value="study">Study Session</SelectItem>
+                    <SelectItem value="meeting">Meeting</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Duration (hours)</Label>
+                <Input
+                  type="number"
+                  min="0.5"
+                  max="8"
+                  step="0.5"
+                  value={newEvent.duration}
+                  onChange={(e) => setNewEvent({ ...newEvent, duration: parseFloat(e.target.value) })}
+                />
+              </div>
             </div>
             <div>
               <Label>Subject</Label>
@@ -515,17 +504,44 @@ export const HourlyCalendar = () => {
                 placeholder="Mathematics, Physics, etc."
               />
             </div>
-            <div>
-              <Label>Duration (hours)</Label>
-              <Input
-                type="number"
-                min="0.5"
-                max="8"
-                step="0.5"
-                value={newEvent.duration}
-                onChange={(e) => setNewEvent({ ...newEvent, duration: parseFloat(e.target.value) })}
-              />
+            
+            <div className="space-y-3 p-4 border rounded-lg bg-accent/10">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="multiple-days"
+                  checked={newEvent.applyToMultipleDays}
+                  onCheckedChange={(checked) =>
+                    setNewEvent({ ...newEvent, applyToMultipleDays: checked as boolean, selectedDays: [] })
+                  }
+                />
+                <Label htmlFor="multiple-days" className="cursor-pointer">
+                  Apply to multiple days
+                </Label>
+              </div>
+              
+              {newEvent.applyToMultipleDays && (
+                <div>
+                  <Label className="text-sm mb-2 block">Select days:</Label>
+                  <div className="grid grid-cols-7 gap-2">
+                    {days.map((day, index) => (
+                      <div
+                        key={index}
+                        onClick={() => toggleDaySelection(index)}
+                        className={`p-2 text-center rounded cursor-pointer transition-colors ${
+                          newEvent.selectedDays.includes(index)
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary hover:bg-secondary/80"
+                        }`}
+                      >
+                        <div className="text-xs font-medium">{format(day, "EEE")}</div>
+                        <div className="text-xs">{format(day, "d")}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+
             <Button onClick={handleCreateEvent} className="w-full bg-gradient-primary">
               Create Event
             </Button>

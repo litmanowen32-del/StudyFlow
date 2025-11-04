@@ -68,15 +68,16 @@ export const MonthlyCalendar = () => {
       return;
     }
 
-    const { error } = await supabase.from("calendar_events").insert({
-      user_id: user?.id,
-      title: newEvent.title,
-      description: newEvent.description,
-      event_type: newEvent.event_type,
-      start_time: newEvent.start_time,
-      end_time: newEvent.end_time || null,
-      subject: newEvent.subject,
-    });
+      const { error } = await supabase.from("calendar_events").insert({
+        user_id: user?.id,
+        title: newEvent.title,
+        description: newEvent.description,
+        event_type: newEvent.event_type,
+        start_time: newEvent.start_time,
+        end_time: newEvent.end_time || null,
+        subject: newEvent.subject,
+        calendar_view: "both"
+      });
 
     if (!error) {
       toast({ title: "Event created!" });

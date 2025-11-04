@@ -216,6 +216,17 @@ const Goals = () => {
                       </div>
                     </div>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={async () => {
+                      await supabase.from("goals").delete().eq("id", goal.id);
+                      toast({ title: "Goal deleted" });
+                      fetchGoals();
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </Card>
             );

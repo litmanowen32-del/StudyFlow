@@ -17,12 +17,15 @@ export type Database = {
       calendar_events: {
         Row: {
           all_day: boolean
+          calendar_view: string
           created_at: string
           description: string | null
           end_time: string | null
           event_type: string
           id: string
+          is_recurring: boolean
           location: string | null
+          recurring_days: number[] | null
           start_time: string
           subject: string | null
           title: string
@@ -31,12 +34,15 @@ export type Database = {
         }
         Insert: {
           all_day?: boolean
+          calendar_view?: string
           created_at?: string
           description?: string | null
           end_time?: string | null
           event_type: string
           id?: string
+          is_recurring?: boolean
           location?: string | null
+          recurring_days?: number[] | null
           start_time: string
           subject?: string | null
           title: string
@@ -45,12 +51,15 @@ export type Database = {
         }
         Update: {
           all_day?: boolean
+          calendar_view?: string
           created_at?: string
           description?: string | null
           end_time?: string | null
           event_type?: string
           id?: string
+          is_recurring?: boolean
           location?: string | null
+          recurring_days?: number[] | null
           start_time?: string
           subject?: string | null
           title?: string
