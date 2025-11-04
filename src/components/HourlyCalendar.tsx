@@ -32,6 +32,14 @@ export const HourlyCalendar = () => {
   const [draggedEvent, setDraggedEvent] = useState<CalendarEvent | null>(null);
   const [resizingEvent, setResizingEvent] = useState<{ event: CalendarEvent; edge: 'top' | 'bottom' } | null>(null);
   const [editDialog, setEditDialog] = useState<{ open: boolean; event?: CalendarEvent }>({ open: false });
+  const [createDialog, setCreateDialog] = useState<{ open: boolean; day?: Date; hour?: number }>({ open: false });
+  const [newEvent, setNewEvent] = useState({
+    title: "",
+    description: "",
+    event_type: "study",
+    subject: "",
+    duration: 1
+  });
   const [isSuggesting, setIsSuggesting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -192,6 +200,34 @@ export const HourlyCalendar = () => {
     }
   };
 
+  const handleCreateEvent = async () => {
+    if (!newEvent.title.trim() || !createDialog.day) {
+      toast({ title: "Please enter an event title", variant: "destructive" });
+      return;
+    }
+
+    const startTime = new Date(createDialog.day);
+    startTime.setHours(createDialog.hour || 9, 0, 0, 0);
+    const endTime = addHours(startTime, newEvent.duration);
+
+    const { error } = await supabase.from("calendar_events").insert({
+      user_id: user?.id,
+      title: newEvent.title,
+      description: newEvent.description,
+      start_time: startTime.toISOString(),
+      end_time: endTime.toISOString(),
+      event_type: newEvent.event_type,
+      subject: newEvent.subject
+    });
+
+    if (!error) {
+      toast({ title: "Event created!" });
+      setNewEvent({ title: "", description: "", event_type: "study", subject: "", duration: 1 });
+      setCreateDialog({ open: false });
+      fetchEvents();
+    }
+  };
+
   const getEventColor = (type: string) => {
     const colors: Record<string, string> = {
       exam: "bg-red-500",
@@ -292,10 +328,11 @@ export const HourlyCalendar = () => {
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="border-b hover:bg-accent/50 transition-colors"
+                    className="border-b hover:bg-accent/50 transition-colors cursor-pointer"
                     style={{ height: `${60 / timeIncrement * 60}px` }}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, day, hour)}
+                    onClick={() => setCreateDialog({ open: true, day, hour })}
                   />
                 ))}
 
@@ -427,6 +464,72 @@ export const HourlyCalendar = () => {
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={createDialog.open} onOpenChange={(open) => setCreateDialog({ open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Event</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Title *</Label>
+              <Input
+                value={newEvent.title}
+                onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                placeholder="Study session, meeting, etc."
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={newEvent.description}
+                onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                placeholder="Additional details..."
+              />
+            </div>
+            <div>
+              <Label>Event Type</Label>
+              <Select
+                value={newEvent.event_type}
+                onValueChange={(value) => setNewEvent({ ...newEvent, event_type: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="class">Class</SelectItem>
+                  <SelectItem value="exam">Exam</SelectItem>
+                  <SelectItem value="assignment">Assignment</SelectItem>
+                  <SelectItem value="study">Study Session</SelectItem>
+                  <SelectItem value="meeting">Meeting</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Subject</Label>
+              <Input
+                value={newEvent.subject}
+                onChange={(e) => setNewEvent({ ...newEvent, subject: e.target.value })}
+                placeholder="Mathematics, Physics, etc."
+              />
+            </div>
+            <div>
+              <Label>Duration (hours)</Label>
+              <Input
+                type="number"
+                min="0.5"
+                max="8"
+                step="0.5"
+                value={newEvent.duration}
+                onChange={(e) => setNewEvent({ ...newEvent, duration: parseFloat(e.target.value) })}
+              />
+            </div>
+            <Button onClick={handleCreateEvent} className="w-full bg-gradient-primary">
+              Create Event
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

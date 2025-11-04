@@ -1,12 +1,95 @@
+import { useEffect, useState } from "react";
 import { TrendingUp, Clock, CheckCircle, Target, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Analytics = () => {
-  const stats = [
-    { icon: Clock, label: "Study Hours This Week", value: "32.5", change: "+12%", color: "text-primary" },
-    { icon: CheckCircle, label: "Tasks Completed", value: "47", change: "+8%", color: "text-success" },
-    { icon: Target, label: "Goals Achieved", value: "12", change: "+25%", color: "text-accent" },
-    { icon: TrendingUp, label: "Productivity Score", value: "85%", change: "+5%", color: "text-warning" },
+  const { user } = useAuth();
+  const [stats, setStats] = useState({
+    studyHours: 0,
+    tasksCompleted: 0,
+    goalsAchieved: 0,
+    productivityScore: 0
+  });
+
+  useEffect(() => {
+    if (user) fetchAnalytics();
+  }, [user]);
+
+  const fetchAnalytics = async () => {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    // Fetch study sessions
+    const { data: sessions } = await supabase
+      .from("study_sessions")
+      .select("duration_minutes")
+      .eq("user_id", user?.id)
+      .gte("started_at", weekAgo.toISOString());
+
+    // Fetch completed tasks
+    const { data: tasks } = await supabase
+      .from("tasks")
+      .select("*")
+      .eq("user_id", user?.id)
+      .eq("completed", true)
+      .gte("completed_at", weekAgo.toISOString());
+
+    // Fetch achieved goals
+    const { data: goals } = await supabase
+      .from("goals")
+      .select("*")
+      .eq("user_id", user?.id)
+      .eq("completed", true);
+
+    // Calculate stats
+    const totalHours = (sessions?.reduce((acc, s) => acc + s.duration_minutes, 0) || 0) / 60;
+    const completedTasks = tasks?.length || 0;
+    const achievedGoals = goals?.length || 0;
+    
+    // Simple productivity score based on activity
+    const productivity = Math.min(100, Math.round(
+      (totalHours * 2) + (completedTasks * 1.5) + (achievedGoals * 3)
+    ));
+
+    setStats({
+      studyHours: totalHours,
+      tasksCompleted: completedTasks,
+      goalsAchieved: achievedGoals,
+      productivityScore: productivity
+    });
+  };
+
+  const statsData = [
+    { 
+      icon: Clock, 
+      label: "Study Hours This Week", 
+      value: stats.studyHours.toFixed(1), 
+      change: "+12%", 
+      color: "text-primary" 
+    },
+    { 
+      icon: CheckCircle, 
+      label: "Tasks Completed", 
+      value: stats.tasksCompleted.toString(), 
+      change: "+8%", 
+      color: "text-success" 
+    },
+    { 
+      icon: Target, 
+      label: "Goals Achieved", 
+      value: stats.goalsAchieved.toString(), 
+      change: "+25%", 
+      color: "text-accent" 
+    },
+    { 
+      icon: TrendingUp, 
+      label: "Productivity Score", 
+      value: `${stats.productivityScore}%`, 
+      change: "+5%", 
+      color: "text-warning" 
+    },
   ];
 
   return (
@@ -25,7 +108,7 @@ const Analytics = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        {stats.map((stat, index) => {
+        {statsData.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card
@@ -51,16 +134,20 @@ const Analytics = () => {
         <Card className="p-6 shadow-soft border-border/50">
           <h2 className="text-xl font-semibold mb-4 text-foreground">Study Habits</h2>
           <p className="text-muted-foreground">
-            Your analytics dashboard will show detailed insights about your study patterns,
-            most productive times, and completion rates once you start tracking your activities.
+            {stats.studyHours > 0 
+              ? `You've logged ${stats.studyHours.toFixed(1)} hours of study time this week! Keep up the great work.`
+              : "Start tracking your study sessions to see insights about your study patterns and most productive times."
+            }
           </p>
         </Card>
 
         <Card className="p-6 shadow-soft border-border/50">
           <h2 className="text-xl font-semibold mb-4 text-foreground">Weekly Overview</h2>
           <p className="text-muted-foreground">
-            Track your weekly progress, completed tasks, and time spent on different subjects
-            to optimize your study schedule and achieve better results.
+            {stats.tasksCompleted > 0
+              ? `You've completed ${stats.tasksCompleted} tasks this week with ${stats.goalsAchieved} goals achieved. Excellent progress!`
+              : "Complete tasks and achieve goals to see your weekly progress and optimize your study schedule."
+            }
           </p>
         </Card>
       </div>
