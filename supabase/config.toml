@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.study-assistant]
 verify_jwt = true
+
+[functions.suggest-time-slots]
+verify_jwt = true
