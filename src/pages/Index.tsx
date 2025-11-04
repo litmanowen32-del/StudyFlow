@@ -1,4 +1,5 @@
 import { Calendar, CheckSquare, Clock, BarChart3, Target, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -59,9 +60,11 @@ const Index = () => {
               beat procrastination, and achieve more with intelligent scheduling and focus tools.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row animate-fade-in">
-              <Button size="lg" className="bg-gradient-primary shadow-glow hover:shadow-accent-glow transition-all">
-                Get Started Free
-              </Button>
+              <Link to="/calendar">
+                <Button size="lg" className="bg-gradient-primary shadow-glow hover:shadow-accent-glow transition-all">
+                  Get Started Free
+                </Button>
+              </Link>
               <Button size="lg" variant="outline">
                 Watch Demo
               </Button>
@@ -137,9 +140,11 @@ const Index = () => {
           <p className="mb-10 text-lg text-muted-foreground">
             Join thousands of students who are achieving more with StudyFlow
           </p>
-          <Button size="lg" className="bg-gradient-accent shadow-accent-glow hover:shadow-glow transition-all">
-            Start Your Journey
-          </Button>
+          <Link to="/calendar">
+            <Button size="lg" className="bg-gradient-accent shadow-accent-glow hover:shadow-glow transition-all">
+              Start Your Journey
+            </Button>
+          </Link>
         </div>
       </section>
     </div>
