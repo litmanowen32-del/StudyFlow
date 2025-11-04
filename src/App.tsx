@@ -18,6 +18,7 @@ import Settings from "./pages/Settings";
 import HabitTracker from "./pages/HabitTracker";
 import Routines from "./pages/Routines";
 import StudyAssistant from "./pages/StudyAssistant";
+import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/routines" element={<ProtectedRoute><AppLayout><Routines /></AppLayout></ProtectedRoute>} />
             <Route path="/study-assistant" element={<ProtectedRoute><AppLayout><StudyAssistant /></AppLayout></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
+            <Route path="/about" element={<ProtectedRoute><AppLayout><About /></AppLayout></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
