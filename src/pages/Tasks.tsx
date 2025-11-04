@@ -1,19 +1,92 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Filter } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Tasks = () => {
-  const [tasks] = useState([
-    { id: 1, title: "Complete Math Assignment", priority: "high", subject: "Mathematics", due: "2 days", completed: false },
-    { id: 2, title: "Read History Chapter 5", priority: "medium", subject: "History", due: "4 days", completed: false },
-    { id: 3, title: "Prepare Chemistry Lab Report", priority: "high", subject: "Chemistry", due: "1 day", completed: false },
-    { id: 4, title: "Review English Notes", priority: "low", subject: "English", due: "1 week", completed: true },
-    { id: 5, title: "Physics Problem Set", priority: "medium", subject: "Physics", due: "3 days", completed: false },
-  ]);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [open, setOpen] = useState(false);
+  const [newTask, setNewTask] = useState({
+    title: "",
+    description: "",
+    priority: "medium",
+    subject: "",
+    due_date: "",
+  });
+
+  useEffect(() => {
+    if (user) fetchTasks();
+  }, [user]);
+
+  const fetchTasks = async () => {
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .eq("user_id", user?.id)
+      .order("due_date", { ascending: true });
+    
+    if (!error && data) setTasks(data);
+  };
+
+  const createTask = async () => {
+    if (!newTask.title.trim()) {
+      toast({ title: "Please enter a task title", variant: "destructive" });
+      return;
+    }
+
+    const { error } = await supabase.from("tasks").insert({
+      user_id: user?.id,
+      title: newTask.title,
+      description: newTask.description,
+      priority: newTask.priority,
+      subject: newTask.subject,
+      due_date: newTask.due_date || null,
+    });
+
+    if (!error) {
+      toast({ title: "Task created!" });
+      setNewTask({ title: "", description: "", priority: "medium", subject: "", due_date: "" });
+      setOpen(false);
+      fetchTasks();
+    }
+  };
+
+  const toggleTask = async (taskId: string, completed: boolean) => {
+    const { error } = await supabase
+      .from("tasks")
+      .update({ 
+        completed: !completed,
+        completed_at: !completed ? new Date().toISOString() : null
+      })
+      .eq("id", taskId);
+
+    if (!error) {
+      toast({ title: completed ? "Task reopened" : "Task completed!" });
+      fetchTasks();
+    }
+  };
+
+  const getDaysUntil = (dueDate: string) => {
+    if (!dueDate) return "No due date";
+    const days = Math.ceil((new Date(dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    if (days < 0) return "Overdue";
+    if (days === 0) return "Due today";
+    if (days === 1) return "Due tomorrow";
+    return `Due in ${days} days`;
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -34,16 +107,74 @@ const Tasks = () => {
             <h1 className="text-3xl font-bold text-foreground">Tasks</h1>
             <p className="text-muted-foreground">Manage and prioritize your assignments</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
-            <Button className="bg-gradient-primary shadow-glow">
-              <Plus className="h-4 w-4" />
-              Add Task
-            </Button>
-          </div>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-primary shadow-glow">
+                <Plus className="h-4 w-4" />
+                Add Task
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Task</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Task Title *</Label>
+                  <Input
+                    id="title"
+                    value={newTask.title}
+                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                    placeholder="Complete assignment"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select
+                    value={newTask.priority}
+                    onValueChange={(value) => setNewTask({ ...newTask, priority: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="subject">Subject</Label>
+                  <Input
+                    id="subject"
+                    value={newTask.subject}
+                    onChange={(e) => setNewTask({ ...newTask, subject: e.target.value })}
+                    placeholder="Mathematics"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="due-date">Due Date</Label>
+                  <Input
+                    id="due-date"
+                    type="datetime-local"
+                    value={newTask.due_date}
+                    onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={newTask.description}
+                    onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                    placeholder="Additional details..."
+                  />
+                </div>
+                <Button onClick={createTask} className="w-full">Create Task</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -53,7 +184,11 @@ const Tasks = () => {
               {tasks.filter(t => !t.completed).map((task) => (
                 <Card key={task.id} className="p-4 shadow-soft transition-all hover:shadow-glow">
                   <div className="flex items-start gap-3">
-                    <Checkbox className="mt-1" />
+                    <Checkbox 
+                      className="mt-1" 
+                      checked={task.completed}
+                      onCheckedChange={() => toggleTask(task.id, task.completed)}
+                    />
                     <div className="flex-1">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="font-medium text-card-foreground">{task.title}</h3>
@@ -61,10 +196,13 @@ const Tasks = () => {
                           {task.priority}
                         </Badge>
                       </div>
+                      {task.description && (
+                        <p className="mt-1 text-sm text-muted-foreground">{task.description}</p>
+                      )}
                       <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{task.subject}</span>
-                        <span>•</span>
-                        <span>Due in {task.due}</span>
+                        {task.subject && <span>{task.subject}</span>}
+                        {task.subject && task.due_date && <span>•</span>}
+                        {task.due_date && <span>{getDaysUntil(task.due_date)}</span>}
                       </div>
                     </div>
                   </div>
@@ -79,11 +217,15 @@ const Tasks = () => {
               {tasks.filter(t => t.completed).map((task) => (
                 <Card key={task.id} className="p-4 opacity-60 shadow-soft">
                   <div className="flex items-start gap-3">
-                    <Checkbox checked className="mt-1" />
+                    <Checkbox 
+                      checked 
+                      className="mt-1" 
+                      onCheckedChange={() => toggleTask(task.id, task.completed)}
+                    />
                     <div className="flex-1">
                       <h3 className="font-medium text-card-foreground line-through">{task.title}</h3>
                       <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{task.subject}</span>
+                        {task.subject && <span>{task.subject}</span>}
                       </div>
                     </div>
                   </div>
