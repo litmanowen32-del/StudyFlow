@@ -60,7 +60,7 @@ const Index = () => {
               beat procrastination, and achieve more with intelligent scheduling and focus tools.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row animate-fade-in">
-              <Link to="/calendar">
+              <Link to="/auth">
                 <Button size="lg" className="bg-gradient-primary shadow-glow hover:shadow-accent-glow transition-all">
                   Get Started Free
                 </Button>
@@ -140,7 +140,7 @@ const Index = () => {
           <p className="mb-10 text-lg text-muted-foreground">
             Join thousands of students who are achieving more with StudyFlow
           </p>
-          <Link to="/calendar">
+          <Link to="/auth">
             <Button size="lg" className="bg-gradient-accent shadow-accent-glow hover:shadow-glow transition-all">
               Start Your Journey
             </Button>

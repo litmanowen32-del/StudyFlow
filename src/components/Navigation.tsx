@@ -1,18 +1,29 @@
-import { Calendar, CheckSquare, Clock, BarChart3, Target, Settings } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Calendar, CheckSquare, Clock, BarChart3, Target, Settings, Flame, Repeat, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "./ui/button";
 
 const Navigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   
   const navItems = [
     { icon: Calendar, label: "Calendar", path: "/calendar" },
     { icon: CheckSquare, label: "Tasks", path: "/tasks" },
     { icon: Clock, label: "Focus", path: "/focus" },
+    { icon: Flame, label: "Habits", path: "/habits" },
+    { icon: Repeat, label: "Routines", path: "/routines" },
     { icon: BarChart3, label: "Analytics", path: "/analytics" },
     { icon: Target, label: "Goals", path: "/goals" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -45,6 +56,11 @@ const Navigation = () => {
                 </Link>
               );
             })}
+            {user && (
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="ml-2">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
