@@ -34,6 +34,7 @@ export const HourlyCalendar = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [timeIncrement, setTimeIncrement] = useState(60);
   const [draggedEvent, setDraggedEvent] = useState<CalendarEvent | null>(null);
+  const [resizingEvent, setResizingEvent] = useState<{ event: CalendarEvent; edge: 'top' | 'bottom'; initialY: number; initialHeight: number } | null>(null);
   const [editDialog, setEditDialog] = useState<{ open: boolean; event?: CalendarEvent }>({ open: false });
   const [createDialog, setCreateDialog] = useState<{ open: boolean; day?: Date; hour?: number }>({ open: false });
   const [newEvent, setNewEvent] = useState({
@@ -54,6 +55,77 @@ export const HourlyCalendar = () => {
   useEffect(() => {
     if (user) fetchEvents();
   }, [user, currentWeek]);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!resizingEvent || !containerRef.current) return;
+      
+      const rect = containerRef.current.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const hourHeight = rect.height / 24;
+      
+      // Calculate new time based on mouse position
+      const minutesFromTop = (y / rect.height) * 1440;
+      
+      const start = parseISO(resizingEvent.event.start_time);
+      const end = resizingEvent.event.end_time ? parseISO(resizingEvent.event.end_time) : addHours(start, 1);
+      
+      let newStart = start;
+      let newEnd = end;
+      
+      if (resizingEvent.edge === 'top') {
+        // Resizing from top - adjust start time
+        newStart = new Date(start);
+        newStart.setHours(0, Math.max(0, Math.round(minutesFromTop)), 0, 0);
+        
+        // Ensure minimum 15-minute duration
+        if (newEnd.getTime() - newStart.getTime() < 15 * 60 * 1000) {
+          newStart = new Date(newEnd.getTime() - 15 * 60 * 1000);
+        }
+      } else {
+        // Resizing from bottom - adjust end time
+        newEnd = new Date(start);
+        newEnd.setHours(0, Math.min(1440, Math.round(minutesFromTop)), 0, 0);
+        
+        // Ensure minimum 15-minute duration
+        if (newEnd.getTime() - newStart.getTime() < 15 * 60 * 1000) {
+          newEnd = new Date(newStart.getTime() + 15 * 60 * 1000);
+        }
+      }
+    };
+
+    const handleMouseUp = async () => {
+      if (!resizingEvent) return;
+      
+      const start = parseISO(resizingEvent.event.start_time);
+      const end = resizingEvent.event.end_time ? parseISO(resizingEvent.event.end_time) : addHours(start, 1);
+      
+      const { error } = await supabase
+        .from("calendar_events")
+        .update({
+          start_time: start.toISOString(),
+          end_time: end.toISOString()
+        })
+        .eq("id", resizingEvent.event.id);
+
+      if (!error) {
+        toast({ title: "Event resized successfully" });
+        fetchEvents();
+      }
+      
+      setResizingEvent(null);
+    };
+
+    if (resizingEvent) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [resizingEvent, user]);
 
   const fetchEvents = async () => {
     const weekEnd = addDays(weekStart, 7);
@@ -103,6 +175,22 @@ export const HourlyCalendar = () => {
       fetchEvents();
     }
     setDraggedEvent(null);
+  };
+
+  const handleResizeStart = (e: React.MouseEvent, event: CalendarEvent, edge: 'top' | 'bottom') => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const start = parseISO(event.start_time);
+    const end = event.end_time ? parseISO(event.end_time) : addHours(start, 1);
+    const duration = end.getTime() - start.getTime();
+    
+    setResizingEvent({ 
+      event, 
+      edge,
+      initialY: e.clientY,
+      initialHeight: duration / (1000 * 60 * 60) // hours
+    });
   };
 
   const handleDeleteEvent = async (eventId: string) => {
@@ -327,9 +415,11 @@ export const HourlyCalendar = () => {
                   return (
                     <div
                       key={event.id}
-                      className={`absolute left-1 right-1 ${getEventColor(event.event_type)} rounded p-1 cursor-move text-white text-xs overflow-hidden shadow-md hover:shadow-lg transition-all group`}
+                      className={`absolute left-1 right-1 ${getEventColor(event.event_type)} rounded p-1 ${
+                        resizingEvent?.event.id === event.id ? 'cursor-ns-resize' : 'cursor-move'
+                      } text-white text-xs overflow-hidden shadow-md hover:shadow-lg transition-all group`}
                       style={position}
-                      draggable
+                      draggable={!resizingEvent}
                       onDragStart={(e) => handleDragStart(e, event)}
                     >
                       <div className="flex items-start justify-between gap-1">
@@ -360,6 +450,14 @@ export const HourlyCalendar = () => {
                           </button>
                         </div>
                       </div>
+                      <div
+                        className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onMouseDown={(e) => handleResizeStart(e, event, 'top')}
+                      />
+                      <div
+                        className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onMouseDown={(e) => handleResizeStart(e, event, 'bottom')}
+                      />
                     </div>
                   );
                 })}
