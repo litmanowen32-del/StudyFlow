@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Filter, Sparkles } from "lucide-react";
+import { Plus, Filter, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -199,9 +199,23 @@ const Tasks = () => {
                     <div className="flex-1">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="font-medium text-card-foreground">{task.title}</h3>
-                        <Badge variant={getPriorityColor(task.priority) as any}>
-                          {task.priority}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={getPriorityColor(task.priority) as any}>
+                            {task.priority}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={async () => {
+                              await supabase.from("tasks").delete().eq("id", task.id);
+                              toast({ title: "Task deleted" });
+                              fetchTasks();
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       {task.description && (
                         <p className="mt-1 text-sm text-muted-foreground">{task.description}</p>
@@ -230,7 +244,21 @@ const Tasks = () => {
                       onCheckedChange={() => toggleTask(task.id, task.completed)}
                     />
                     <div className="flex-1">
-                      <h3 className="font-medium text-card-foreground line-through">{task.title}</h3>
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium text-card-foreground line-through">{task.title}</h3>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={async () => {
+                            await supabase.from("tasks").delete().eq("id", task.id);
+                            toast({ title: "Task deleted" });
+                            fetchTasks();
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
                         {task.subject && <span>{task.subject}</span>}
                       </div>
