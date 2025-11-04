@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Clock } from "lucide-react";
-import Navigation from "@/components/Navigation";
+import { Plus, Clock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -58,15 +57,20 @@ const Routines = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Routine Builder</h1>
-            <p className="text-muted-foreground">Create personalized daily and weekly routines</p>
+    <div className="container mx-auto px-6 py-8">
+      <div className="mb-8 flex items-center justify-between animate-fade-in">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-3">
+            <Sparkles className="h-4 w-4" />
+            <span>Daily Routines</span>
           </div>
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+            Routine Builder
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Create personalized daily and weekly routines
+          </p>
+        </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-primary shadow-glow">
@@ -155,7 +159,6 @@ const Routines = () => {
           </Card>
         )}
       </div>
-    </div>
   );
 };
 

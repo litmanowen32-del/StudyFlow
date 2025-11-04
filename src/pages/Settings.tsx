@@ -1,19 +1,23 @@
-import { User, Bell, Palette, Shield } from "lucide-react";
-import Navigation from "@/components/Navigation";
+import { User, Bell, Palette, Shield, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 const Settings = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground">Manage your preferences and account</p>
+    <div className="container mx-auto px-6 py-8 max-w-4xl">
+      <div className="mb-8 animate-fade-in">
+        <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-4">
+          <Sparkles className="h-4 w-4" />
+          <span>Customize Your Experience</span>
         </div>
+        <h1 className="text-4xl font-bold mb-3 bg-gradient-primary bg-clip-text text-transparent">
+          Settings
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          Manage your preferences and account settings
+        </p>
+      </div>
 
         <div className="space-y-6">
           <Card className="p-6 shadow-soft">
@@ -96,7 +100,6 @@ const Settings = () => {
           </Card>
         </div>
       </div>
-    </div>
   );
 };
 

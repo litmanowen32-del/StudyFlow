@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Play, Pause, RotateCcw, Coffee } from "lucide-react";
-import Navigation from "@/components/Navigation";
+import { Play, Pause, RotateCcw, Coffee, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -74,14 +73,19 @@ const Focus = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h1 className="mb-4 text-3xl font-bold text-foreground">Focus Timer</h1>
-          <p className="text-muted-foreground">Use the Pomodoro technique to maximize productivity</p>
+    <div className="container mx-auto px-6 py-16 max-w-4xl">
+      <div className="text-center mb-12 animate-fade-in">
+        <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-4">
+          <Sparkles className="h-4 w-4" />
+          <span>Pomodoro Technique</span>
         </div>
+        <h1 className="text-4xl font-bold mb-3 bg-gradient-primary bg-clip-text text-transparent">
+          Focus Timer
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          Use the Pomodoro technique to maximize productivity
+        </p>
+      </div>
 
         <Card className="mt-12 p-12 text-center shadow-glow">
           <div className="mb-8">
@@ -136,7 +140,6 @@ const Focus = () => {
           </Card>
         </div>
       </div>
-    </div>
   );
 };
 
