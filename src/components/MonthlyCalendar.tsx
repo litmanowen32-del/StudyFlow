@@ -56,6 +56,7 @@ export const MonthlyCalendar = () => {
       .from("calendar_events")
       .select("*")
       .eq("user_id", user?.id)
+      .in("calendar_view", ["monthly", "both"])
       .gte("start_time", startOfMonth.toISOString())
       .lte("start_time", endOfMonth.toISOString());
 
@@ -76,7 +77,7 @@ export const MonthlyCalendar = () => {
         start_time: newEvent.start_time,
         end_time: newEvent.end_time || null,
         subject: newEvent.subject,
-        calendar_view: "both"
+        calendar_view: "monthly"
       });
 
     if (!error) {
