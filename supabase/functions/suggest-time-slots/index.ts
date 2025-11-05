@@ -26,6 +26,8 @@ Consider:
 - Time of day for different types of work (complex tasks in morning, lighter tasks in afternoon)
 - Break times between tasks
 - Realistic task durations
+- IMPORTANT: Do NOT suggest any times before 7:00 AM - only suggest times between 7:00 AM and 11:59 PM
+- IMPORTANT: Avoid scheduling over existing calendar events, especially school events from 8:20 AM to 3:30 PM on weekdays
 
 Return suggestions as a JSON array with this exact structure:
 [

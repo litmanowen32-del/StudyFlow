@@ -42,7 +42,7 @@ export const HourlyCalendar = () => {
     description: "",
     event_type: "study",
     subject: "",
-    duration: 1,
+    endTime: "",
     applyToMultipleDays: false,
     selectedDays: [] as number[]
   });
@@ -53,7 +53,10 @@ export const HourlyCalendar = () => {
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
   useEffect(() => {
-    if (user) fetchEvents();
+    if (user) {
+      fetchEvents();
+      createSchoolEvents();
+    }
   }, [user, currentWeek]);
 
   useEffect(() => {
@@ -138,6 +141,47 @@ export const HourlyCalendar = () => {
       .lte("start_time", weekEnd.toISOString());
     
     if (!error && data) setEvents(data);
+  };
+
+  const createSchoolEvents = async () => {
+    // Create school events for weekdays (Mon-Fri) 8:20 AM - 3:30 PM
+    const weekdays = [1, 2, 3, 4, 5]; // Monday to Friday
+    const schoolEvents = [];
+
+    for (const dayOffset of weekdays) {
+      const schoolDay = addDays(weekStart, dayOffset);
+      
+      // Check if school event already exists for this day
+      const { data: existingEvents } = await supabase
+        .from("calendar_events")
+        .select("*")
+        .eq("user_id", user?.id)
+        .eq("event_type", "class")
+        .eq("title", "School")
+        .gte("start_time", schoolDay.toISOString())
+        .lte("start_time", addDays(schoolDay, 1).toISOString());
+
+      if (!existingEvents || existingEvents.length === 0) {
+        const startTime = new Date(schoolDay);
+        startTime.setHours(8, 20, 0, 0);
+        const endTime = new Date(schoolDay);
+        endTime.setHours(15, 30, 0, 0);
+
+        schoolEvents.push({
+          user_id: user?.id,
+          title: "School",
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          event_type: "class",
+          calendar_view: "both"
+        });
+      }
+    }
+
+    if (schoolEvents.length > 0) {
+      await supabase.from("calendar_events").insert(schoolEvents);
+      fetchEvents();
+    }
   };
 
   const handleDragStart = (e: React.DragEvent, event: CalendarEvent) => {
@@ -229,16 +273,27 @@ export const HourlyCalendar = () => {
       return;
     }
 
+    if (!newEvent.endTime) {
+      toast({ title: "Please enter an end time", variant: "destructive" });
+      return;
+    }
+
     const startTime = new Date(createDialog.day);
     startTime.setHours(createDialog.hour || 9, 0, 0, 0);
-    const endTime = addHours(startTime, newEvent.duration);
+    
+    const [endHours, endMinutes] = newEvent.endTime.split(':').map(Number);
+    const endTime = new Date(createDialog.day);
+    endTime.setHours(endHours, endMinutes, 0, 0);
 
     if (newEvent.applyToMultipleDays && newEvent.selectedDays.length > 0) {
       const eventsToCreate = newEvent.selectedDays.map(dayIndex => {
         const eventDay = addDays(weekStart, dayIndex);
         const eventStart = new Date(eventDay);
         eventStart.setHours(createDialog.hour || 9, 0, 0, 0);
-        const eventEnd = addHours(eventStart, newEvent.duration);
+        
+        const [endHours, endMinutes] = newEvent.endTime.split(':').map(Number);
+        const eventEnd = new Date(eventDay);
+        eventEnd.setHours(endHours, endMinutes, 0, 0);
 
         return {
           user_id: user?.id,
@@ -287,7 +342,7 @@ export const HourlyCalendar = () => {
       description: "", 
       event_type: "study", 
       subject: "", 
-      duration: 1,
+      endTime: "",
       applyToMultipleDays: false,
       selectedDays: []
     });
@@ -583,14 +638,11 @@ export const HourlyCalendar = () => {
                 </Select>
               </div>
               <div>
-                <Label>Duration (hours)</Label>
+                <Label>End Time *</Label>
                 <Input
-                  type="number"
-                  min="0.5"
-                  max="8"
-                  step="0.5"
-                  value={newEvent.duration}
-                  onChange={(e) => setNewEvent({ ...newEvent, duration: parseFloat(e.target.value) })}
+                  type="time"
+                  value={newEvent.endTime}
+                  onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
                 />
               </div>
             </div>
