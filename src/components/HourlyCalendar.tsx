@@ -256,7 +256,9 @@ export const HourlyCalendar = () => {
         title: event.title,
         description: event.description,
         event_type: event.event_type,
-        subject: event.subject
+        subject: event.subject,
+        start_time: event.start_time,
+        end_time: event.end_time
       })
       .eq("id", event.id);
 
@@ -540,6 +542,41 @@ export const HourlyCalendar = () => {
                     })
                   }
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Start Time</Label>
+                  <Input
+                    type="time"
+                    value={format(parseISO(editDialog.event.start_time), 'HH:mm')}
+                    onChange={(e) => {
+                      const [hours, minutes] = e.target.value.split(':').map(Number);
+                      const newStart = parseISO(editDialog.event!.start_time);
+                      newStart.setHours(hours, minutes, 0, 0);
+                      setEditDialog({
+                        ...editDialog,
+                        event: { ...editDialog.event!, start_time: newStart.toISOString() },
+                      });
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label>End Time</Label>
+                  <Input
+                    type="time"
+                    value={editDialog.event.end_time ? format(parseISO(editDialog.event.end_time), 'HH:mm') : ''}
+                    onChange={(e) => {
+                      const [hours, minutes] = e.target.value.split(':').map(Number);
+                      const start = parseISO(editDialog.event!.start_time);
+                      const newEnd = new Date(start);
+                      newEnd.setHours(hours, minutes, 0, 0);
+                      setEditDialog({
+                        ...editDialog,
+                        event: { ...editDialog.event!, end_time: newEnd.toISOString() },
+                      });
+                    }}
+                  />
+                </div>
               </div>
               <div>
                 <Label>Description</Label>
