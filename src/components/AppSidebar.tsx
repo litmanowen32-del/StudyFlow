@@ -15,6 +15,12 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const navItems = [
   { icon: Calendar, label: "Calendar", path: "/calendar" },
@@ -38,113 +44,151 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border">
-      <SidebarContent>
-        {/* Logo Section */}
-        <SidebarGroup>
-          <div className="flex items-center gap-2 px-4 py-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary">
-              <GraduationCap className="h-6 w-6 text-primary-foreground" />
-            </div>
-            {open && (
-              <div className="flex flex-col">
-                <span className="text-lg font-bold text-foreground">StudyFlow</span>
-                <span className="text-xs text-muted-foreground">Productivity Suite</span>
+    <TooltipProvider delayDuration={300}>
+      <Sidebar collapsible="icon" className="border-r border-border">
+        <SidebarContent>
+          {/* Logo Section */}
+          <SidebarGroup>
+            <div className="flex items-center gap-2 px-4 py-6">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary">
+                <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-            )}
-          </div>
-        </SidebarGroup>
+              {open && (
+                <div className="flex flex-col">
+                  <span className="text-lg font-bold text-foreground">StudyFlow</span>
+                  <span className="text-xs text-muted-foreground">Productivity Suite</span>
+                </div>
+              )}
+            </div>
+          </SidebarGroup>
 
-        {/* Main Navigation */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.path}
-                      className={({ isActive }) =>
-                        cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                          isActive
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                        )
-                      }
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.label}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
+          {/* Main Navigation */}
+          <SidebarGroup>
+            <SidebarGroupLabel>Main</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navItems.map((item) => (
+                  <SidebarMenuItem key={item.path}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to={item.path}
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                                isActive
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+                              )
+                            }
+                          >
+                            <item.icon className="h-5 w-5" />
+                            <span>{item.label}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {!open && (
+                        <TooltipContent side="right">
+                          <p>{item.label}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {/* Settings */}
+          <SidebarGroup>
+            <SidebarGroupLabel>Preferences</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton asChild>
+                        <NavLink
+                          to="/settings"
+                          className={({ isActive }) =>
+                            cn(
+                              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                              isActive
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+                            )
+                          }
+                        >
+                          <Settings className="h-5 w-5" />
+                          <span>Settings</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    {!open && (
+                      <TooltipContent side="right">
+                        <p>Settings</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                <SidebarMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton asChild>
+                        <NavLink
+                          to="/about"
+                          className={({ isActive }) =>
+                            cn(
+                              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                              isActive
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+                            )
+                          }
+                        >
+                          <Info className="h-5 w-5" />
+                          <span>About</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    {!open && (
+                      <TooltipContent side="right">
+                        <p>About</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-        {/* Settings */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Preferences</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/settings"
-                    className={({ isActive }) =>
-                      cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                        isActive
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                      )
-                    }
+        {/* Footer */}
+        <SidebarFooter>
+          {user && (
+            <div className="p-4">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+                    onClick={handleSignOut}
                   >
-                    <Settings className="h-5 w-5" />
-                    <span>Settings</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/about"
-                    className={({ isActive }) =>
-                      cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                        isActive
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                      )
-                    }
-                  >
-                    <Info className="h-5 w-5" />
-                    <span>About</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      {/* Footer */}
-      <SidebarFooter>
-        {user && (
-          <div className="p-4">
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-              onClick={handleSignOut}
-            >
-              <LogOut className="h-5 w-5" />
-              {open && <span>Sign Out</span>}
-            </Button>
-          </div>
-        )}
-      </SidebarFooter>
-    </Sidebar>
+                    <LogOut className="h-5 w-5" />
+                    {open && <span>Sign Out</span>}
+                  </Button>
+                </TooltipTrigger>
+                {!open && (
+                  <TooltipContent side="right">
+                    <p>Sign Out</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </div>
+          )}
+        </SidebarFooter>
+      </Sidebar>
+    </TooltipProvider>
   );
 }
