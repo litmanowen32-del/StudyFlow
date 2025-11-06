@@ -173,7 +173,7 @@ export const HourlyCalendar = () => {
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
           event_type: "class",
-          calendar_view: "both"
+          calendar_view: "hourly"
         });
       }
     }
