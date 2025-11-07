@@ -120,7 +120,7 @@ export default function Onboarding() {
         description: "Your preferences have been saved.",
       });
 
-      navigate("/");
+      navigate("/calendar");
     } catch (error) {
       console.error("Error saving preferences:", error);
       toast({
