@@ -331,7 +331,12 @@ export type Database = {
           focus_duration: number | null
           long_break_duration: number | null
           notifications_enabled: boolean | null
+          onboarding_completed: boolean | null
+          referral_source: string | null
+          school_level: string | null
           short_break_duration: number | null
+          study_goal_hours_per_week: number | null
+          study_preference: string | null
           theme: string | null
           updated_at: string
           user_id: string
@@ -341,7 +346,12 @@ export type Database = {
           focus_duration?: number | null
           long_break_duration?: number | null
           notifications_enabled?: boolean | null
+          onboarding_completed?: boolean | null
+          referral_source?: string | null
+          school_level?: string | null
           short_break_duration?: number | null
+          study_goal_hours_per_week?: number | null
+          study_preference?: string | null
           theme?: string | null
           updated_at?: string
           user_id: string
@@ -351,7 +361,12 @@ export type Database = {
           focus_duration?: number | null
           long_break_duration?: number | null
           notifications_enabled?: boolean | null
+          onboarding_completed?: boolean | null
+          referral_source?: string | null
+          school_level?: string | null
           short_break_duration?: number | null
+          study_goal_hours_per_week?: number | null
+          study_preference?: string | null
           theme?: string | null
           updated_at?: string
           user_id?: string
