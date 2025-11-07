@@ -145,7 +145,7 @@ export const HourlyCalendar = () => {
 
   const createSchoolEvents = async () => {
     // Create school events for weekdays (Mon-Fri) 8:20 AM - 3:30 PM
-    const weekdays = [1, 2, 3, 4, 5]; // Monday to Friday
+    const weekdays = [0, 1, 2, 3, 4]; // Monday to Friday
     const schoolEvents = [];
 
     for (const dayOffset of weekdays) {
