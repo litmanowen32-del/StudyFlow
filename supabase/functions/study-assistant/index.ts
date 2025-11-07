@@ -12,25 +12,55 @@ serve(async (req) => {
   }
 
   try {
-    const { topic } = await req.json();
+    const { topic, image } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const systemPrompt = `You are a helpful study assistant. When given a topic, provide:
-1. A clear, concise explanation of the topic
-2. Key concepts and important points to understand
-3. Practical tips for studying and mastering this topic
-4. Helpful examples or analogies when relevant
-5. Common pitfalls to avoid
+    const systemPrompt = `You are a patient and encouraging study tutor. Your role is to teach students how to complete their assignments, not just give them answers.
 
-Keep your response well-structured and easy to understand for students.`;
+When analyzing an assignment:
+1. Identify what the assignment is asking
+2. Break down the problem or task into manageable steps
+3. Explain the relevant concepts and principles
+4. Guide the student through the solution process with clear explanations
+5. Provide tips and strategies for similar problems
+6. Encourage critical thinking with helpful questions
+7. Point out common mistakes to avoid
 
-    const userPrompt = `Please help me understand this topic: ${topic}
+If given a topic without an image:
+1. Provide a clear, concise explanation
+2. Share key concepts and important points
+3. Offer practical study tips
+4. Include helpful examples or analogies
+5. Highlight common pitfalls
 
-Provide a comprehensive explanation with study tips.`;
+Always be supportive, clear, and educational. Focus on teaching understanding, not just providing answers.`;
+
+    let userContent;
+    
+    if (image) {
+      // Handle image analysis with vision
+      userContent = [
+        {
+          type: "text",
+          text: topic ? 
+            `I need help with this assignment. ${topic}\n\nPlease analyze the image and teach me how to approach and complete this assignment.` :
+            "Please analyze this assignment image and teach me how to approach and complete it step by step."
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: `data:image/jpeg;base64,${image}`
+          }
+        }
+      ];
+    } else {
+      // Handle text-only topic
+      userContent = `Please help me understand this topic: ${topic}\n\nProvide a comprehensive explanation with study tips.`;
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -42,7 +72,7 @@ Provide a comprehensive explanation with study tips.`;
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
+          { role: "user", content: userContent }
         ],
       }),
     });

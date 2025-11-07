@@ -1,24 +1,60 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, BookOpen, Lightbulb, Sparkles } from "lucide-react";
+import { Loader2, BookOpen, Lightbulb, Sparkles, Camera, Upload, X } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 const StudyAssistant = () => {
   const [topic, setTopic] = useState("");
   const [explanation, setExplanation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const convertImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!topic.trim()) {
+    if (!topic.trim() && !imageFile) {
       toast({
         title: "Error",
-        description: "Please enter a topic",
+        description: "Please enter a topic or upload an assignment image",
         variant: "destructive",
       });
       return;
@@ -28,8 +64,16 @@ const StudyAssistant = () => {
     setExplanation("");
 
     try {
+      let imageBase64 = "";
+      if (imageFile) {
+        imageBase64 = await convertImageToBase64(imageFile);
+      }
+
       const { data, error } = await supabase.functions.invoke('study-assistant', {
-        body: { topic: topic.trim() }
+        body: { 
+          topic: topic.trim(),
+          image: imageBase64
+        }
       });
 
       if (error) throw error;
@@ -80,34 +124,94 @@ const StudyAssistant = () => {
             What would you like to learn?
           </CardTitle>
           <CardDescription className="text-base">
-            Enter any topic, concept, or question to receive a comprehensive explanation
+            Enter a topic or upload a photo of your assignment for AI-powered teaching
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="flex gap-3">
-            <Input
-              type="text"
-              placeholder="e.g., Photosynthesis, Quadratic Equations, World War II..."
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              disabled={isLoading}
-              className="flex-1 h-12 text-base"
-            />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="topic">Topic or Question</Label>
+                <Input
+                  id="topic"
+                  type="text"
+                  placeholder="e.g., Help me solve this math problem..."
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  disabled={isLoading}
+                  className="h-12 text-base"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Upload Assignment Photo</Label>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isLoading}
+                    className="flex-1 h-12"
+                  >
+                    <Camera className="mr-2 h-5 w-5" />
+                    Take Photo
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isLoading}
+                    className="flex-1 h-12"
+                  >
+                    <Upload className="mr-2 h-5 w-5" />
+                    Upload Image
+                  </Button>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </div>
+
+              {imagePreview && (
+                <div className="relative rounded-lg border border-border overflow-hidden animate-fade-in">
+                  <img 
+                    src={imagePreview} 
+                    alt="Assignment preview" 
+                    className="w-full h-auto max-h-96 object-contain"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <Button 
               type="submit" 
-              disabled={isLoading}
+              disabled={isLoading || (!topic.trim() && !imageFile)}
               size="lg"
-              className="bg-gradient-primary shadow-glow hover:shadow-accent-glow transition-all"
+              className="w-full bg-gradient-primary shadow-glow hover:shadow-accent-glow transition-all"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Analyzing...
+                  Analyzing Assignment...
                 </>
               ) : (
                 <>
                   <Sparkles className="mr-2 h-5 w-5" />
-                  Explain
+                  Get Teaching Assistance
                 </>
               )}
             </Button>
