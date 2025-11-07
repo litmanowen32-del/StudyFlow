@@ -77,7 +77,7 @@ export const MonthlyCalendar = () => {
         start_time: newEvent.start_time,
         end_time: newEvent.end_time || null,
         subject: newEvent.subject,
-        calendar_view: "monthly"
+        calendar_view: "both"
       });
 
     if (!error) {
