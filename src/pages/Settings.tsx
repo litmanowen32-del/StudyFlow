@@ -30,13 +30,19 @@ const Settings = () => {
   }, [user]);
 
   const initializeGoogleSignIn = () => {
-    // Initialize Google Identity Services
+    console.log('Initializing Google Sign-In...');
     const google = (window as any).google;
+    console.log('Google object available?', typeof google !== 'undefined');
+    
     if (typeof google !== 'undefined') {
+      console.log('Google Identity Services found, initializing...');
       google.accounts.id.initialize({
         client_id: "75643997203-f8bpkjmphj2rpchdks6mivcurfm7k3ts.apps.googleusercontent.com",
         callback: handleGoogleCallback,
       });
+      console.log('Google Identity Services initialized');
+    } else {
+      console.error('Google Identity Services not loaded!');
     }
   };
 
@@ -139,8 +145,12 @@ const Settings = () => {
   };
 
   const connectGoogleClassroom = () => {
+    console.log('Connect Google Classroom clicked');
     const google = (window as any).google;
+    console.log('Google available?', typeof google !== 'undefined');
+    
     if (typeof google !== 'undefined') {
+      console.log('Starting OAuth code client...');
       google.accounts.oauth2.initCodeClient({
         client_id: "75643997203-f8bpkjmphj2rpchdks6mivcurfm7k3ts.apps.googleusercontent.com",
         scope: "https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me.readonly",
