@@ -38,7 +38,7 @@ serve(async (req) => {
 
     const clientId = Deno.env.get("GOOGLE_CLASSROOM_CLIENT_ID");
     const clientSecret = Deno.env.get("GOOGLE_CLASSROOM_CLIENT_SECRET");
-    const redirectUri = `${Deno.env.get("SUPABASE_URL")}/functions/v1/google-classroom-auth`;
+    const redirectUri = "postmessage"; // For Google Identity Services code flow
 
     // Exchange code for tokens
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
