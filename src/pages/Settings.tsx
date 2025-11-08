@@ -144,7 +144,12 @@ const Settings = () => {
 
   const connectGoogleClassroom = () => {
     const clientId = "75643997203-d7dia3fchtf8g9jo85khdufmo9mp83cs.apps.googleusercontent.com";
-    const redirectUri = `${window.location.origin}/settings`;
+    // Use the exact URL - check console to see what this resolves to
+    const currentUrl = window.location.origin;
+    console.log("Current origin:", currentUrl);
+    const redirectUri = `${currentUrl}/settings`;
+    console.log("Redirect URI:", redirectUri);
+    
     const scope = "https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me.readonly";
     
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent&state=google_classroom`;
