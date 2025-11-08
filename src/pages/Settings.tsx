@@ -28,6 +28,44 @@ const Settings = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    // Handle OAuth callback
+    const handleOAuthCallback = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const state = urlParams.get('state');
+      
+      if (code && state === 'google_classroom' && sessionStorage.getItem('google_classroom_connecting')) {
+        sessionStorage.removeItem('google_classroom_connecting');
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('google-classroom-auth', {
+            body: { code },
+            headers: {
+              Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+            }
+          });
+          
+          if (error) throw error;
+          
+          setIsGoogleConnected(true);
+          toast({ title: "Google Classroom connected successfully!" });
+          
+          // Clean URL
+          window.history.replaceState({}, document.title, '/settings');
+        } catch (error) {
+          toast({ 
+            title: "Connection failed", 
+            description: error instanceof Error ? error.message : "Unknown error",
+            variant: "destructive" 
+          });
+        }
+      }
+    };
+    
+    handleOAuthCallback();
+  }, []);
+
   const fetchProfile = async () => {
     if (!user) return;
     const { data } = await supabase
@@ -105,31 +143,17 @@ const Settings = () => {
   };
 
   const connectGoogleClassroom = () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLASSROOM_CLIENT_ID || "75643997203-d7dia3fchtf8g9jo85khdufmo9mp83cs.apps.googleusercontent.com";
-    const redirectUri = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-classroom-auth`;
+    const clientId = "75643997203-d7dia3fchtf8g9jo85khdufmo9mp83cs.apps.googleusercontent.com";
+    const redirectUri = `${window.location.origin}/settings`;
     const scope = "https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me.readonly";
     
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent&state=google_classroom`;
     
-    window.open(authUrl, '_blank', 'width=500,height=600');
+    // Save that we're connecting
+    sessionStorage.setItem('google_classroom_connecting', 'true');
     
-    // Poll for connection status
-    const pollInterval = setInterval(async () => {
-      const { data } = await supabase
-        .from('google_oauth_tokens')
-        .select('id')
-        .eq('user_id', user?.id)
-        .single();
-      
-      if (data) {
-        setIsGoogleConnected(true);
-        clearInterval(pollInterval);
-        toast({ title: "Google Classroom connected successfully!" });
-      }
-    }, 2000);
-    
-    // Stop polling after 2 minutes
-    setTimeout(() => clearInterval(pollInterval), 120000);
+    // Redirect to Google OAuth
+    window.location.href = authUrl;
   };
 
   const disconnectGoogleClassroom = async () => {
