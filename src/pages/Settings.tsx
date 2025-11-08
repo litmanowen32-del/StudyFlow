@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Sparkles, Mail, Upload } from "lucide-react";
+import { User, Bell, Palette, Shield, Sparkles, Mail, Upload, BookOpen, RefreshCw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -17,10 +17,14 @@ const Settings = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [checkingConnection, setCheckingConnection] = useState(true);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
+      checkGoogleConnection();
     }
   }, [user]);
 
@@ -79,6 +83,98 @@ const Settings = () => {
       });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const checkGoogleConnection = async () => {
+    if (!user) return;
+    setCheckingConnection(true);
+    try {
+      const { data, error } = await supabase
+        .from('google_oauth_tokens')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      setIsGoogleConnected(!!data && !error);
+    } catch (error) {
+      setIsGoogleConnected(false);
+    } finally {
+      setCheckingConnection(false);
+    }
+  };
+
+  const connectGoogleClassroom = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLASSROOM_CLIENT_ID || "75643997203-d7dia3fchtf8g9jo85khdufmo9mp83cs.apps.googleusercontent.com";
+    const redirectUri = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-classroom-auth`;
+    const scope = "https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me.readonly";
+    
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
+    
+    window.open(authUrl, '_blank', 'width=500,height=600');
+    
+    // Poll for connection status
+    const pollInterval = setInterval(async () => {
+      const { data } = await supabase
+        .from('google_oauth_tokens')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+      
+      if (data) {
+        setIsGoogleConnected(true);
+        clearInterval(pollInterval);
+        toast({ title: "Google Classroom connected successfully!" });
+      }
+    }, 2000);
+    
+    // Stop polling after 2 minutes
+    setTimeout(() => clearInterval(pollInterval), 120000);
+  };
+
+  const disconnectGoogleClassroom = async () => {
+    try {
+      const { error } = await supabase
+        .from('google_oauth_tokens')
+        .delete()
+        .eq('user_id', user?.id);
+      
+      if (error) throw error;
+      
+      setIsGoogleConnected(false);
+      toast({ title: "Google Classroom disconnected" });
+    } catch (error) {
+      toast({ 
+        title: "Error disconnecting", 
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive" 
+      });
+    }
+  };
+
+  const syncGoogleClassroom = async () => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-google-classroom', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({ 
+        title: "Sync complete!", 
+        description: data.message 
+      });
+    } catch (error) {
+      toast({ 
+        title: "Sync failed", 
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive" 
+      });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -241,6 +337,59 @@ const Settings = () => {
               />
             </div>
           </div>
+        </Card>
+
+        <Card className="p-6 shadow-soft border-primary/20 bg-gradient-card">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-lg bg-primary/10 p-2">
+              <BookOpen className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Google Classroom</h2>
+              <p className="text-sm text-muted-foreground">
+                Automatically sync assignments from your courses
+              </p>
+            </div>
+          </div>
+
+          {checkingConnection ? (
+            <div className="text-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            </div>
+          ) : isGoogleConnected ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                <div className="h-2 w-2 rounded-full bg-green-600 dark:bg-green-400"></div>
+                Connected to Google Classroom
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={syncGoogleClassroom} 
+                  disabled={isSyncing}
+                  className="flex-1"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                  {isSyncing ? "Syncing..." : "Sync Assignments"}
+                </Button>
+                <Button 
+                  onClick={disconnectGoogleClassroom}
+                  variant="outline"
+                >
+                  Disconnect
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Connect your Google Classroom account to automatically import assignments as tasks.
+              </p>
+              <Button onClick={connectGoogleClassroom} className="w-full">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Connect Google Classroom
+              </Button>
+            </div>
+          )}
         </Card>
 
         <Card className="p-6 shadow-soft">
