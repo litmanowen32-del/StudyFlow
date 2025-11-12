@@ -172,7 +172,7 @@ const Settings = () => {
     if (typeof google !== 'undefined') {
       google.accounts.oauth2.initCodeClient({
         client_id: googleClientId,
-        scope: "https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+        scope: "https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me.readonly https://www.googleapis.com/auth/gmail.readonly",
         callback: async (response: any) => {
           if (response.code) {
             try {
@@ -186,7 +186,7 @@ const Settings = () => {
               if (error) throw error;
               
               setIsGoogleConnected(true);
-              toast({ title: "Google Classroom connected successfully!" });
+              toast({ title: "Google Account connected successfully! (Classroom + Gmail)" });
             } catch (error) {
               toast({ 
                 title: "Connection failed", 
@@ -206,7 +206,7 @@ const Settings = () => {
     }
   };
 
-  const disconnectGoogleClassroom = async () => {
+  const disconnectGoogleAccount = async () => {
     try {
       const { error } = await supabase
         .from('google_oauth_tokens')
@@ -216,7 +216,7 @@ const Settings = () => {
       if (error) throw error;
       
       setIsGoogleConnected(false);
-      toast({ title: "Google Classroom disconnected" });
+      toast({ title: "Google Account disconnected" });
     } catch (error) {
       toast({ 
         title: "Error disconnecting", 
@@ -226,10 +226,10 @@ const Settings = () => {
     }
   };
 
-  const syncGoogleClassroom = async () => {
+  const syncGoogleAccount = async () => {
     setIsSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('sync-google-classroom', {
+      const { data, error } = await supabase.functions.invoke('sync-google-account', {
         headers: {
           Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
         }
@@ -419,9 +419,9 @@ const Settings = () => {
               <BookOpen className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold">Google Classroom</h2>
+              <h2 className="text-xl font-semibold">Google Account</h2>
               <p className="text-sm text-muted-foreground">
-                Automatically sync assignments from your courses
+                Sync Classroom assignments and Gmail messages
               </p>
             </div>
           </div>
@@ -434,19 +434,19 @@ const Settings = () => {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                 <div className="h-2 w-2 rounded-full bg-green-600 dark:bg-green-400"></div>
-                Connected to Google Classroom
+                Connected to Google Account (Classroom + Gmail)
               </div>
               <div className="flex gap-2">
                 <Button 
-                  onClick={syncGoogleClassroom} 
+                  onClick={syncGoogleAccount} 
                   disabled={isSyncing}
                   className="flex-1"
                 >
                   <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? "Syncing..." : "Sync Assignments"}
+                  {isSyncing ? "Syncing..." : "Sync Now"}
                 </Button>
                 <Button 
-                  onClick={disconnectGoogleClassroom}
+                  onClick={disconnectGoogleAccount}
                   variant="outline"
                 >
                   Disconnect
@@ -456,11 +456,11 @@ const Settings = () => {
           ) : (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Connect your Google Classroom account to automatically import assignments as tasks.
+                Connect your Google account to import Classroom assignments and important Gmail messages as tasks.
               </p>
               <Button onClick={connectGoogleClassroom} className="w-full">
                 <BookOpen className="h-4 w-4 mr-2" />
-                Connect Google Classroom
+                Connect Google Account
               </Button>
             </div>
           )}
