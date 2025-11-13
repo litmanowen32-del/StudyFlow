@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, BookOpen, Trash2, Edit, Play, Shuffle } from "lucide-react";
+import { Plus, BookOpen, Trash2, Edit, Play, Shuffle, Sparkles } from "lucide-react";
 
 interface StudySet {
   id: string;
@@ -39,6 +39,10 @@ const Study = () => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [newSet, setNewSet] = useState({ title: '', description: '', subject: '' });
   const [newCard, setNewCard] = useState({ front: '', back: '' });
+  const [isAiGenerateOpen, setIsAiGenerateOpen] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiCardCount, setAiCardCount] = useState(10);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -154,6 +158,66 @@ const Study = () => {
       if (selectedSet) {
         fetchFlashcards(selectedSet.id);
       }
+    }
+  };
+
+  const generateFlashcardsWithAI = async () => {
+    if (!aiTopic.trim()) {
+      toast({ title: "Please enter a topic", variant: "destructive" });
+      return;
+    }
+
+    if (!selectedSet) {
+      toast({ title: "Please select a study set first", variant: "destructive" });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-flashcards', {
+        body: { 
+          topic: aiTopic,
+          count: aiCardCount 
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data.success || !data.flashcards) {
+        throw new Error(data.error || "Failed to generate flashcards");
+      }
+
+      // Insert all generated flashcards
+      const flashcardsToInsert = data.flashcards.map((card: any) => ({
+        user_id: user?.id,
+        study_set_id: selectedSet.id,
+        front: card.front,
+        back: card.back
+      }));
+
+      const { error: insertError } = await supabase
+        .from('flashcards')
+        .insert(flashcardsToInsert);
+
+      if (insertError) throw insertError;
+
+      toast({ 
+        title: "Flashcards generated!", 
+        description: `Added ${data.flashcards.length} cards to your study set` 
+      });
+      
+      setAiTopic("");
+      setIsAiGenerateOpen(false);
+      fetchFlashcards(selectedSet.id);
+    } catch (error) {
+      console.error("Error generating flashcards:", error);
+      toast({ 
+        title: "Failed to generate flashcards", 
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive" 
+      });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -373,6 +437,56 @@ const Study = () => {
             <Shuffle className="w-4 h-4 mr-2" />
             Shuffle
           </Button>
+          <Dialog open={isAiGenerateOpen} onOpenChange={setIsAiGenerateOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate with AI
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Generate Flashcards with AI</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Topic</Label>
+                  <Input
+                    value={aiTopic}
+                    onChange={(e) => setAiTopic(e.target.value)}
+                    placeholder="e.g., Photosynthesis, World War II, JavaScript Basics"
+                  />
+                </div>
+                <div>
+                  <Label>Number of Cards</Label>
+                  <Input
+                    type="number"
+                    min="3"
+                    max="20"
+                    value={aiCardCount}
+                    onChange={(e) => setAiCardCount(parseInt(e.target.value) || 10)}
+                  />
+                </div>
+                <Button 
+                  onClick={generateFlashcardsWithAI} 
+                  className="w-full gap-2"
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Generate Flashcards
+                    </>
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Dialog open={isCreateCardOpen} onOpenChange={setIsCreateCardOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
