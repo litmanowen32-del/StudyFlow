@@ -1,4 +1,4 @@
-import { Calendar, CheckSquare, Clock, BarChart3, Target, Flame, Repeat, BookOpen, Settings, LogOut, GraduationCap, Info, Library } from "lucide-react";
+import { Calendar, CheckSquare, Clock, BarChart3, Target, Flame, Repeat, BookOpen, Settings, LogOut, GraduationCap, Info, Library, LayoutDashboard } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 
 const navItems = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Clock, label: "Focus Timer", path: "/focus" },
