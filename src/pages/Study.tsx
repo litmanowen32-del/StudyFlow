@@ -57,7 +57,7 @@ const Study = () => {
   }, [selectedSet]);
 
   const fetchStudySets = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('study_sets')
       .select('*')
       .order('created_at', { ascending: false });
@@ -65,12 +65,12 @@ const Study = () => {
     if (error) {
       toast({ title: "Error loading study sets", variant: "destructive" });
     } else {
-      setStudySets(data || []);
+      setStudySets((data as any) || []);
     }
   };
 
   const fetchFlashcards = async (setId: string) => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('flashcards')
       .select('*')
       .eq('study_set_id', setId)
@@ -79,14 +79,14 @@ const Study = () => {
     if (error) {
       toast({ title: "Error loading flashcards", variant: "destructive" });
     } else {
-      setFlashcards(data || []);
+      setFlashcards((data as any) || []);
     }
   };
 
   const createStudySet = async () => {
     if (!user || !newSet.title.trim()) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('study_sets')
       .insert([{ 
         user_id: user.id, 
@@ -108,7 +108,7 @@ const Study = () => {
   const createFlashcard = async () => {
     if (!user || !selectedSet || !newCard.front.trim() || !newCard.back.trim()) return;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('flashcards')
       .insert([{ 
         user_id: user.id,
@@ -128,7 +128,7 @@ const Study = () => {
   };
 
   const deleteStudySet = async (id: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('study_sets')
       .delete()
       .eq('id', id);
@@ -146,7 +146,7 @@ const Study = () => {
   };
 
   const deleteFlashcard = async (id: string) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('flashcards')
       .delete()
       .eq('id', id);
@@ -195,7 +195,7 @@ const Study = () => {
         back: card.back
       }));
 
-      const { error: insertError } = await supabase
+      const { error: insertError } = await (supabase as any)
         .from('flashcards')
         .insert(flashcardsToInsert);
 
