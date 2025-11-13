@@ -1,7 +1,8 @@
-import { Calendar, CheckSquare, Clock, BarChart3, Target, Zap } from "lucide-react";
+import { Calendar, CheckSquare, Clock, BarChart3, Target, Zap, BookOpen, Brain, Lightbulb } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
   const features = [
@@ -73,39 +74,226 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features Grid */}
+      {/* Tabbed Content Section */}
       <section className="px-6 py-20 lg:py-32">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-16 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-foreground lg:text-4xl">
-              Everything You Need to Succeed
-            </h2>
-            <p className="mx-auto max-w-2xl text-muted-foreground">
-              Powerful features designed to help you plan smarter, focus better, and achieve more
-            </p>
-          </div>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <Card
-                  key={index}
-                  className="group relative overflow-hidden border-border bg-card p-6 shadow-soft transition-all hover:shadow-glow hover:-translate-y-1"
-                >
-                  <div className="absolute inset-0 bg-gradient-card opacity-0 transition-opacity group-hover:opacity-100" />
-                  <div className="relative">
-                    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-gradient-primary group-hover:text-primary-foreground transition-all">
-                      <Icon className="h-6 w-6" />
+          <Tabs defaultValue="features" className="w-full">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-16">
+              <TabsTrigger value="features">Features</TabsTrigger>
+              <TabsTrigger value="study-tips">Study Tips</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="features">
+              <div className="mb-16 text-center">
+                <h2 className="mb-4 text-3xl font-bold text-foreground lg:text-4xl">
+                  Everything You Need to Succeed
+                </h2>
+                <p className="mx-auto max-w-2xl text-muted-foreground">
+                  Powerful features designed to help you plan smarter, focus better, and achieve more
+                </p>
+              </div>
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {features.map((feature, index) => {
+                  const Icon = feature.icon;
+                  return (
+                    <Card
+                      key={index}
+                      className="group relative overflow-hidden border-border bg-card p-6 shadow-soft transition-all hover:shadow-glow hover:-translate-y-1"
+                    >
+                      <div className="absolute inset-0 bg-gradient-card opacity-0 transition-opacity group-hover:opacity-100" />
+                      <div className="relative">
+                        <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        <h3 className="mb-2 text-xl font-semibold text-foreground">
+                          {feature.title}
+                        </h3>
+                        <p className="text-muted-foreground">{feature.description}</p>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="study-tips">
+              <div className="mx-auto max-w-4xl">
+                <div className="mb-12 text-center">
+                  <h2 className="mb-4 text-3xl font-bold text-foreground lg:text-4xl">
+                    Master the Art of Studying
+                  </h2>
+                  <p className="mx-auto max-w-2xl text-muted-foreground">
+                    Evidence-based strategies to help you study smarter, not harder
+                  </p>
+                </div>
+
+                <div className="space-y-12">
+                  {/* Purpose of Studying */}
+                  <Card className="p-8 border-border bg-card shadow-soft">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="rounded-lg bg-primary/10 p-3">
+                        <Target className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-foreground mb-3">
+                          Why We Study
+                        </h3>
+                        <div className="space-y-3 text-muted-foreground">
+                          <p>
+                            Studying isn't just about memorizing facts for exams—it's about building knowledge that stays with you. 
+                            When you truly understand something, you can apply it in new situations, connect it to other concepts, 
+                            and use it to solve real-world problems.
+                          </p>
+                          <p>
+                            Effective studying strengthens neural pathways in your brain, making information easier to recall when 
+                            you need it. It's like building mental muscles—the more you work them, the stronger they become.
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="mb-2 text-xl font-semibold text-card-foreground">
-                      {feature.title}
-                    </h3>
-                    <p className="text-muted-foreground">{feature.description}</p>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
+                  </Card>
+
+                  {/* Overcoming Procrastination */}
+                  <Card className="p-8 border-border bg-card shadow-soft">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="rounded-lg bg-primary/10 p-3">
+                        <Clock className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-foreground mb-3">
+                          Beating Procrastination
+                        </h3>
+                        <div className="space-y-3 text-muted-foreground">
+                          <p>
+                            Procrastination is often about emotional regulation, not laziness. We avoid tasks that make us feel 
+                            anxious, overwhelmed, or uncertain. The key is to make starting easier than avoiding.
+                          </p>
+                          <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li><strong>The 2-Minute Rule:</strong> Commit to just 2 minutes of work. Once started, you'll often continue naturally.</li>
+                            <li><strong>Break It Down:</strong> Large tasks feel overwhelming. Split them into tiny, specific actions.</li>
+                            <li><strong>Remove Friction:</strong> Prepare your study space in advance. Close distracting tabs before you start.</li>
+                            <li><strong>Time Block:</strong> Schedule specific times for studying. Treat these appointments as non-negotiable.</li>
+                            <li><strong>Forgive Yourself:</strong> Being harsh about past procrastination makes it worse. Focus on the next step.</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Improving Study Habits */}
+                  <Card className="p-8 border-border bg-card shadow-soft">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="rounded-lg bg-primary/10 p-3">
+                        <Zap className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-foreground mb-3">
+                          Building Better Habits
+                        </h3>
+                        <div className="space-y-3 text-muted-foreground">
+                          <p>
+                            Consistent habits beat intense cramming every time. Here's how to build a sustainable study routine:
+                          </p>
+                          <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li><strong>Same Time, Same Place:</strong> Studying at consistent times trains your brain to focus automatically.</li>
+                            <li><strong>Start Small:</strong> Begin with 15-20 minutes daily. Consistency matters more than duration initially.</li>
+                            <li><strong>Track Progress:</strong> Use a simple checkmark system to build momentum and see your streak grow.</li>
+                            <li><strong>Environment Design:</strong> Keep your study space clean, well-lit, and free from distractions.</li>
+                            <li><strong>Sleep & Exercise:</strong> Your brain consolidates learning during sleep. Regular exercise boosts cognitive function.</li>
+                            <li><strong>Review Regularly:</strong> Revisit material within 24 hours, then at increasing intervals to strengthen memory.</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Study Techniques */}
+                  <Card className="p-8 border-border bg-card shadow-soft">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="rounded-lg bg-primary/10 p-3">
+                        <Brain className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-foreground mb-3">
+                          Proven Study Techniques
+                        </h3>
+                        <div className="space-y-4 text-muted-foreground">
+                          <div>
+                            <h4 className="font-semibold text-foreground mb-2">Active Recall</h4>
+                            <p>
+                              Instead of re-reading notes, close them and try to recall the information from memory. 
+                              This strengthens neural connections and reveals what you actually don't know yet.
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-foreground mb-2">Spaced Repetition</h4>
+                            <p>
+                              Review material at increasing intervals: after 1 day, 3 days, 1 week, 2 weeks, 1 month. 
+                              This fights the forgetting curve and moves information into long-term memory.
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-foreground mb-2">Pomodoro Technique</h4>
+                            <p>
+                              Study for 25 minutes, then take a 5-minute break. After 4 sessions, take a longer 15-30 minute break. 
+                              This maintains focus while preventing burnout.
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-foreground mb-2">Feynman Technique</h4>
+                            <p>
+                              Explain concepts in simple terms as if teaching someone else. If you get stuck, you've found a gap in 
+                              your understanding. Go back and learn that part better.
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-foreground mb-2">Interleaving Practice</h4>
+                            <p>
+                              Mix up different topics or types of problems in one session. This builds flexibility and helps you 
+                              recognize when to apply different concepts.
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-foreground mb-2">Elaborative Interrogation</h4>
+                            <p>
+                              Constantly ask yourself "why" and "how" questions. Connect new information to what you already know. 
+                              The more connections you create, the easier recall becomes.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Additional Tips */}
+                  <Card className="p-8 border-border bg-card shadow-soft">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="rounded-lg bg-primary/10 p-3">
+                        <Lightbulb className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-foreground mb-3">
+                          Pro Tips for Success
+                        </h3>
+                        <div className="space-y-3 text-muted-foreground">
+                          <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li><strong>Study in Different Locations:</strong> Varying your environment helps create multiple retrieval cues.</li>
+                            <li><strong>Handwrite Notes:</strong> Writing by hand engages your brain more deeply than typing.</li>
+                            <li><strong>Teach Others:</strong> Explaining concepts to classmates reinforces your own understanding.</li>
+                            <li><strong>Practice Tests:</strong> Testing yourself is more effective than re-reading. Make practice questions as you study.</li>
+                            <li><strong>Mind Your Nutrition:</strong> Stay hydrated, eat regular meals, and avoid excessive caffeine that can spike anxiety.</li>
+                            <li><strong>Use Multiple Senses:</strong> Read aloud, create diagrams, or walk while reviewing flashcards to engage different parts of your brain.</li>
+                            <li><strong>Embrace Mistakes:</strong> Getting answers wrong during practice is actually good—it helps you learn what needs more attention.</li>
+                            <li><strong>Plan Recovery Time:</strong> Schedule breaks and fun activities. A rested brain learns better than an exhausted one.</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 
