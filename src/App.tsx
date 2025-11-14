@@ -18,7 +18,6 @@ import Analytics from "./pages/Analytics";
 import Goals from "./pages/Goals";
 import Settings from "./pages/Settings";
 import HabitTracker from "./pages/HabitTracker";
-import Routines from "./pages/Routines";
 import StudyAssistant from "./pages/StudyAssistant";
 import Study from "./pages/Study";
 import About from "./pages/About";
@@ -60,7 +59,6 @@ const App = () => (
             <Route path="/analytics" element={<ProtectedRoute><AppLayout><Analytics /></AppLayout></ProtectedRoute>} />
             <Route path="/goals" element={<ProtectedRoute><AppLayout><Goals /></AppLayout></ProtectedRoute>} />
             <Route path="/habits" element={<ProtectedRoute><AppLayout><HabitTracker /></AppLayout></ProtectedRoute>} />
-            <Route path="/routines" element={<ProtectedRoute><AppLayout><Routines /></AppLayout></ProtectedRoute>} />
             <Route path="/study-assistant" element={<ProtectedRoute><AppLayout><StudyAssistant /></AppLayout></ProtectedRoute>} />
             <Route path="/study" element={<ProtectedRoute><AppLayout><Study /></AppLayout></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
