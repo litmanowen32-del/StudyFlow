@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, BookOpen, Trash2, Edit, Play, Shuffle, Sparkles } from "lucide-react";
+import { Plus, BookOpen, Trash2, Edit, Play, Shuffle, Sparkles, Trophy, PenTool, CheckCircle } from "lucide-react";
 
 interface StudySet {
   id: string;
@@ -34,7 +34,16 @@ const Study = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [isCreateSetOpen, setIsCreateSetOpen] = useState(false);
   const [isCreateCardOpen, setIsCreateCardOpen] = useState(false);
-  const [studyMode, setStudyMode] = useState<'view' | 'flashcards' | 'shuffle'>('view');
+  const [studyMode, setStudyMode] = useState<'view' | 'flashcards' | 'shuffle' | 'match' | 'write' | 'quiz'>('view');
+  const [matchedPairs, setMatchedPairs] = useState<string[]>([]);
+  const [selectedTerms, setSelectedTerms] = useState<string[]>([]);
+  const [writeAnswers, setWriteAnswers] = useState<{ [key: string]: string }>({});
+  const [showWriteResults, setShowWriteResults] = useState(false);
+  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+  const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
+  const [quizAnswers, setQuizAnswers] = useState<{ [key: number]: string }>({});
+  const [showQuizResults, setShowQuizResults] = useState(false);
+  const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [newSet, setNewSet] = useState({ title: '', description: '', subject: '' });
@@ -253,6 +262,110 @@ const Study = () => {
     }
   };
 
+  const startMatchGame = () => {
+    if (flashcards.length > 0) {
+      setStudyMode('match');
+      setMatchedPairs([]);
+      setSelectedTerms([]);
+    }
+  };
+
+  const startWriteMode = () => {
+    if (flashcards.length > 0) {
+      setStudyMode('write');
+      setWriteAnswers({});
+      setShowWriteResults(false);
+    }
+  };
+
+  const generateAIQuiz = async () => {
+    if (flashcards.length === 0) {
+      toast({ title: "No flashcards available", variant: "destructive" });
+      return;
+    }
+
+    setIsGeneratingQuiz(true);
+    try {
+      const flashcardsData = flashcards.map(card => ({
+        term: card.front,
+        definition: card.back
+      }));
+
+      const { data, error } = await supabase.functions.invoke('generate-ai-test', {
+        body: { 
+          flashcards: flashcardsData,
+          setTitle: selectedSet?.title || 'Study Set'
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data.success || !data.questions) {
+        throw new Error(data.error || "Failed to generate quiz");
+      }
+
+      setQuizQuestions(data.questions);
+      setQuizAnswers({});
+      setShowQuizResults(false);
+      setCurrentQuizIndex(0);
+      setStudyMode('quiz');
+      
+      toast({ 
+        title: "AI Quiz Generated!", 
+        description: `Created ${data.questions.length} questions based on your flashcards` 
+      });
+    } catch (error) {
+      console.error("Error generating quiz:", error);
+      toast({ 
+        title: "Failed to generate quiz", 
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive" 
+      });
+    } finally {
+      setIsGeneratingQuiz(false);
+    }
+  };
+
+  const handleMatchClick = (cardId: string, type: 'term' | 'definition') => {
+    const fullId = `${type}-${cardId}`;
+    
+    if (matchedPairs.includes(cardId)) return;
+    
+    if (selectedTerms.includes(fullId)) {
+      setSelectedTerms(selectedTerms.filter(id => id !== fullId));
+      return;
+    }
+
+    const newSelected = [...selectedTerms, fullId];
+    
+    if (newSelected.length === 2) {
+      const [first, second] = newSelected;
+      const [firstType, firstId] = first.split('-');
+      const [secondType, secondId] = second.split('-');
+      
+      if (firstType !== secondType && firstId === secondId) {
+        setMatchedPairs([...matchedPairs, firstId]);
+        setSelectedTerms([]);
+        
+        if (matchedPairs.length + 1 === flashcards.length) {
+          toast({ title: "Congratulations! 🎉", description: "You matched all pairs!" });
+        }
+      } else {
+        setTimeout(() => setSelectedTerms([]), 800);
+      }
+    } else {
+      setSelectedTerms(newSelected);
+    }
+  };
+
+  const checkWriteAnswers = () => {
+    setShowWriteResults(true);
+  };
+
+  const submitQuiz = () => {
+    setShowQuizResults(true);
+  };
+
   if (!selectedSet) {
     return (
       <div className="container mx-auto p-4 md:p-6">
@@ -345,6 +458,300 @@ const Study = () => {
     );
   }
 
+  if (studyMode === 'match') {
+    const shuffledFlashcards = [...flashcards].sort(() => Math.random() - 0.5);
+    const terms = shuffledFlashcards.map(card => ({ id: card.id, text: card.front, type: 'term' as const }));
+    const definitions = [...shuffledFlashcards].sort(() => Math.random() - 0.5).map(card => ({ id: card.id, text: card.back, type: 'definition' as const }));
+    
+    return (
+      <div className="container mx-auto p-4 md:p-6">
+        <div className="mb-6">
+          <Button variant="outline" onClick={() => {
+            setStudyMode('view');
+            setMatchedPairs([]);
+            setSelectedTerms([]);
+          }}>
+            ← Back to Set
+          </Button>
+        </div>
+
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
+            <Trophy className="w-6 h-6 text-primary" />
+            Match Game
+          </h2>
+          <p className="text-muted-foreground">
+            Matched: {matchedPairs.length} / {flashcards.length}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold mb-3">Terms</h3>
+            {terms.map(item => (
+              <Card
+                key={`term-${item.id}`}
+                className={`p-4 cursor-pointer transition-all ${
+                  matchedPairs.includes(item.id)
+                    ? 'opacity-50 bg-green-100 dark:bg-green-900'
+                    : selectedTerms.includes(`term-${item.id}`)
+                    ? 'ring-2 ring-primary'
+                    : 'hover:shadow-lg'
+                }`}
+                onClick={() => handleMatchClick(item.id, 'term')}
+              >
+                <p className="text-sm">{item.text}</p>
+              </Card>
+            ))}
+          </div>
+          
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold mb-3">Definitions</h3>
+            {definitions.map(item => (
+              <Card
+                key={`def-${item.id}`}
+                className={`p-4 cursor-pointer transition-all ${
+                  matchedPairs.includes(item.id)
+                    ? 'opacity-50 bg-green-100 dark:bg-green-900'
+                    : selectedTerms.includes(`definition-${item.id}`)
+                    ? 'ring-2 ring-primary'
+                    : 'hover:shadow-lg'
+                }`}
+                onClick={() => handleMatchClick(item.id, 'definition')}
+              >
+                <p className="text-sm">{item.text}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (studyMode === 'write') {
+    return (
+      <div className="container mx-auto p-4 md:p-6 max-w-4xl">
+        <div className="mb-6">
+          <Button variant="outline" onClick={() => {
+            setStudyMode('view');
+            setWriteAnswers({});
+            setShowWriteResults(false);
+          }}>
+            ← Back to Set
+          </Button>
+        </div>
+
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
+            <PenTool className="w-6 h-6 text-primary" />
+            Write Mode
+          </h2>
+          <p className="text-muted-foreground">Type the correct answer for each term</p>
+        </div>
+
+        <div className="space-y-4">
+          {flashcards.map((card, index) => {
+            const isCorrect = writeAnswers[card.id]?.toLowerCase().trim() === card.back.toLowerCase().trim();
+            return (
+              <Card key={card.id} className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex-1">
+                    <Label className="text-lg font-semibold mb-2">
+                      {index + 1}. {card.front}
+                    </Label>
+                    <Input
+                      value={writeAnswers[card.id] || ''}
+                      onChange={(e) => setWriteAnswers({ ...writeAnswers, [card.id]: e.target.value })}
+                      placeholder="Type your answer..."
+                      disabled={showWriteResults}
+                      className={showWriteResults ? (isCorrect ? 'border-green-500' : 'border-red-500') : ''}
+                    />
+                    {showWriteResults && !isCorrect && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Correct answer: {card.back}
+                      </p>
+                    )}
+                  </div>
+                  {showWriteResults && (
+                    <div className="mt-2">
+                      {isCorrect ? (
+                        <CheckCircle className="w-6 h-6 text-green-500" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-red-500" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          {!showWriteResults ? (
+            <Button onClick={checkWriteAnswers} size="lg">
+              Check Answers
+            </Button>
+          ) : (
+            <div className="text-center">
+              <p className="text-xl font-bold mb-4">
+                Score: {Object.keys(writeAnswers).filter(id => 
+                  writeAnswers[id]?.toLowerCase().trim() === 
+                  flashcards.find(c => c.id === id)?.back.toLowerCase().trim()
+                ).length} / {flashcards.length}
+              </p>
+              <Button onClick={() => {
+                setWriteAnswers({});
+                setShowWriteResults(false);
+              }}>
+                Try Again
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (studyMode === 'quiz') {
+    if (quizQuestions.length === 0) return null;
+
+    const currentQuestion = quizQuestions[currentQuizIndex];
+    
+    if (showQuizResults) {
+      const score = Object.values(quizAnswers).filter((answer, idx) => 
+        answer === quizQuestions[idx]?.correctAnswer
+      ).length;
+      
+      return (
+        <div className="container mx-auto p-4 md:p-6 max-w-4xl">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-4">Quiz Complete!</h2>
+            <p className="text-5xl font-bold text-primary mb-2">
+              {score} / {quizQuestions.length}
+            </p>
+            <p className="text-xl text-muted-foreground">
+              {Math.round((score / quizQuestions.length) * 100)}% Correct
+            </p>
+          </div>
+
+          <div className="space-y-4 mb-6">
+            {quizQuestions.map((q, idx) => {
+              const userAnswer = quizAnswers[idx];
+              const isCorrect = userAnswer === q.correctAnswer;
+              
+              return (
+                <Card key={idx} className="p-6">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1">
+                      {isCorrect ? (
+                        <CheckCircle className="w-6 h-6 text-green-500" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border-2 border-red-500" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold mb-2">{q.question}</p>
+                      <div className="space-y-1 text-sm">
+                        <p className={userAnswer === q.correctAnswer ? 'text-green-600 font-medium' : ''}>
+                          Your answer: {userAnswer}
+                        </p>
+                        {!isCorrect && (
+                          <p className="text-muted-foreground">
+                            Correct answer: {q.correctAnswer}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-center gap-4">
+            <Button onClick={() => {
+              setStudyMode('view');
+              setQuizAnswers({});
+              setShowQuizResults(false);
+              setCurrentQuizIndex(0);
+            }}>
+              Back to Set
+            </Button>
+            <Button variant="outline" onClick={generateAIQuiz}>
+              Generate New Quiz
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="container mx-auto p-4 md:p-6 max-w-4xl">
+        <div className="mb-6">
+          <Button variant="outline" onClick={() => {
+            setStudyMode('view');
+            setQuizAnswers({});
+            setShowQuizResults(false);
+          }}>
+            ← Back to Set
+          </Button>
+        </div>
+
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold">AI Generated Quiz</h2>
+          <p className="text-muted-foreground">
+            Question {currentQuizIndex + 1} of {quizQuestions.length}
+          </p>
+        </div>
+
+        <Card className="p-8 mb-6">
+          <p className="text-xl font-semibold mb-6">{currentQuestion.question}</p>
+          
+          <div className="space-y-3">
+            {currentQuestion.options.map((option: string, idx: number) => (
+              <Card
+                key={idx}
+                className={`p-4 cursor-pointer transition-all hover:shadow-lg ${
+                  quizAnswers[currentQuizIndex] === option ? 'ring-2 ring-primary' : ''
+                }`}
+                onClick={() => setQuizAnswers({ ...quizAnswers, [currentQuizIndex]: option })}
+              >
+                <p>{option}</p>
+              </Card>
+            ))}
+          </div>
+        </Card>
+
+        <div className="flex justify-between">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentQuizIndex(Math.max(0, currentQuizIndex - 1))}
+            disabled={currentQuizIndex === 0}
+          >
+            Previous
+          </Button>
+          
+          {currentQuizIndex < quizQuestions.length - 1 ? (
+            <Button
+              onClick={() => setCurrentQuizIndex(currentQuizIndex + 1)}
+              disabled={!quizAnswers[currentQuizIndex]}
+            >
+              Next
+            </Button>
+          ) : (
+            <Button
+              onClick={submitQuiz}
+              disabled={Object.keys(quizAnswers).length !== quizQuestions.length}
+            >
+              Submit Quiz
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (studyMode === 'flashcards' || studyMode === 'shuffle') {
     const currentCard = flashcards[currentCardIndex];
     
@@ -428,15 +835,58 @@ const Study = () => {
             <p className="text-muted-foreground">{selectedSet.subject}</p>
           )}
         </div>
-        <div className="flex gap-2">
-          <Button onClick={startFlashcards} disabled={flashcards.length === 0}>
-            <Play className="w-4 h-4 mr-2" />
-            Study
-          </Button>
-          <Button variant="outline" onClick={startShuffle} disabled={flashcards.length === 0}>
-            <Shuffle className="w-4 h-4 mr-2" />
-            Shuffle
-          </Button>
+        <Tabs defaultValue="study" className="w-full mb-6">
+          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+            <TabsTrigger value="study">Study Modes</TabsTrigger>
+            <TabsTrigger value="games">Games</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="study" className="space-y-4">
+            <div className="flex flex-wrap gap-2 justify-center">
+              <Button onClick={startFlashcards} disabled={flashcards.length === 0}>
+                <Play className="w-4 h-4 mr-2" />
+                Flashcards
+              </Button>
+              <Button variant="outline" onClick={startShuffle} disabled={flashcards.length === 0}>
+                <Shuffle className="w-4 h-4 mr-2" />
+                Shuffle
+              </Button>
+              <Button variant="outline" onClick={startWriteMode} disabled={flashcards.length === 0}>
+                <PenTool className="w-4 h-4 mr-2" />
+                Write
+              </Button>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="games" className="space-y-4">
+            <div className="flex flex-wrap gap-2 justify-center">
+              <Button variant="outline" onClick={startMatchGame} disabled={flashcards.length === 0}>
+                <Trophy className="w-4 h-4 mr-2" />
+                Match Game
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={generateAIQuiz} 
+                disabled={flashcards.length === 0 || isGeneratingQuiz}
+              >
+                {isGeneratingQuiz ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    AI Quiz
+                  </>
+                )}
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex gap-2 justify-center"
+        >
           <Dialog open={isAiGenerateOpen} onOpenChange={setIsAiGenerateOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
