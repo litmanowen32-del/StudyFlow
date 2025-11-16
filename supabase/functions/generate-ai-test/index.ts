@@ -42,7 +42,7 @@ serve(async (req) => {
     }
 
     const flashcardContent = flashcards.map((fc: any, idx: number) => 
-      `${idx + 1}. Q: ${fc.front}\n   A: ${fc.back}`
+      `${idx + 1}. Q: ${fc.term || fc.front}\n   A: ${fc.definition || fc.back}`
     ).join('\n\n');
 
     const systemPrompt = `You are an expert test generator. Create a comprehensive test with exactly 10 questions based on the provided flashcard content. 

@@ -1,10 +1,20 @@
 import { Calendar, CheckSquare, Clock, BarChart3, Target, Zap, BookOpen, Brain, Lightbulb } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  if (user) {
+    return <Navigate to="/calendar" replace />;
+  }
   const features = [
     {
       icon: Calendar,
