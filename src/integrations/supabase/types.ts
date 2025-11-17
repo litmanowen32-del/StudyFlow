@@ -439,6 +439,8 @@ export type Database = {
           referral_source: string | null
           school_level: string | null
           short_break_duration: number | null
+          sleep_end_time: string | null
+          sleep_start_time: string | null
           study_goal_hours_per_week: number | null
           study_preference: string | null
           theme: string | null
@@ -454,6 +456,8 @@ export type Database = {
           referral_source?: string | null
           school_level?: string | null
           short_break_duration?: number | null
+          sleep_end_time?: string | null
+          sleep_start_time?: string | null
           study_goal_hours_per_week?: number | null
           study_preference?: string | null
           theme?: string | null
@@ -469,6 +473,8 @@ export type Database = {
           referral_source?: string | null
           school_level?: string | null
           short_break_duration?: number | null
+          sleep_end_time?: string | null
+          sleep_start_time?: string | null
           study_goal_hours_per_week?: number | null
           study_preference?: string | null
           theme?: string | null

@@ -12,13 +12,16 @@ serve(async (req) => {
   }
 
   try {
-    const { tasks, existingEvents, startDate, endDate } = await req.json();
+    const { tasks, existingEvents, startDate, endDate, sleepStart, sleepEnd } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    const sleepStartTime = sleepStart || '23:00';
+    const sleepEndTime = sleepEnd || '07:00';
+    
     const systemPrompt = `You are an AI scheduling assistant. Analyze the user's existing calendar events and pending tasks to suggest optimal time slots.
 Consider:
 - Task priority and due dates
@@ -26,7 +29,7 @@ Consider:
 - Time of day for different types of work (complex tasks in morning, lighter tasks in afternoon)
 - Break times between tasks
 - Realistic task durations
-- IMPORTANT: Do NOT suggest any times before 7:00 AM - only suggest times between 7:00 AM and 11:59 PM
+- CRITICAL: User sleeps from ${sleepStartTime} to ${sleepEndTime}. NEVER suggest any times during this sleep period.
 - IMPORTANT: Avoid scheduling over existing calendar events, especially school events from 8:20 AM to 3:30 PM on weekdays
 
 Return suggestions as a JSON array with this exact structure:
