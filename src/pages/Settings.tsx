@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -21,12 +22,15 @@ const Settings = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [checkingConnection, setCheckingConnection] = useState(true);
   const [googleClientId, setGoogleClientId] = useState<string | null>(null);
+  const [sleepStartTime, setSleepStartTime] = useState('23:00');
+  const [sleepEndTime, setSleepEndTime] = useState('07:00');
 
   useEffect(() => {
     if (user) {
       fetchProfile();
       checkGoogleConnection();
       fetchGoogleConfig();
+      fetchSleepPreferences();
     }
   }, [user]);
 
@@ -270,6 +274,42 @@ const Settings = () => {
     }
   };
 
+  const fetchSleepPreferences = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('user_preferences')
+      .select('sleep_start_time, sleep_end_time')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (data) {
+      if (data.sleep_start_time) setSleepStartTime(data.sleep_start_time.slice(0, 5));
+      if (data.sleep_end_time) setSleepEndTime(data.sleep_end_time.slice(0, 5));
+    }
+  };
+
+  const updateSleepPreferences = async () => {
+    if (!user) return;
+    
+    const { error } = await supabase
+      .from('user_preferences')
+      .upsert({
+        user_id: user.id,
+        sleep_start_time: sleepStartTime,
+        sleep_end_time: sleepEndTime,
+      });
+
+    if (error) {
+      toast({ 
+        title: "Error saving sleep times", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } else {
+      toast({ title: "Sleep times saved!" });
+    }
+  };
+
   return (
     <div className="container mx-auto px-6 py-8 max-w-4xl">
       <div className="mb-8 animate-fade-in">
@@ -357,6 +397,39 @@ const Settings = () => {
               </div>
               <Switch defaultChecked />
             </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 shadow-soft">
+          <div className="mb-4 flex items-center gap-3">
+            <Bell className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Sleep Schedule</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Set your sleep hours to prevent AI from scheduling during this time
+          </p>
+          <div className="space-y-4">
+            <div>
+              <Label>Sleep Start Time</Label>
+              <Input
+                type="time"
+                value={sleepStartTime}
+                onChange={(e) => setSleepStartTime(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Wake Up Time</Label>
+              <Input
+                type="time"
+                value={sleepEndTime}
+                onChange={(e) => setSleepEndTime(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <Button onClick={updateSleepPreferences} className="w-full">
+              Save Sleep Schedule
+            </Button>
           </div>
         </Card>
 

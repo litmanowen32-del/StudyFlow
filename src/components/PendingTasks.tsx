@@ -70,6 +70,12 @@ export const PendingTasks = () => {
       const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
       const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
 
+      const { data: prefs } = await supabase
+        .from('user_preferences')
+        .select('sleep_start_time, sleep_end_time')
+        .eq('user_id', user?.id)
+        .single();
+
       const { data: existingEvents } = await supabase
         .from("calendar_events")
         .select("*")
@@ -83,6 +89,8 @@ export const PendingTasks = () => {
           existingEvents: existingEvents || [],
           startDate: weekStart.toISOString(),
           endDate: weekEnd.toISOString(),
+          sleepStart: prefs?.sleep_start_time?.slice(0, 5) || '23:00',
+          sleepEnd: prefs?.sleep_end_time?.slice(0, 5) || '07:00',
         },
       });
 
