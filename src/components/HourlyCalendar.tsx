@@ -412,13 +412,25 @@ export const HourlyCalendar = () => {
     if (!isSameDay(start, day)) return null;
 
     const end = event.end_time ? parseISO(event.end_time) : addHours(start, 1);
-    const startMinutes = start.getHours() * 60 + start.getMinutes();
-    const endMinutes = end.getHours() * 60 + end.getMinutes();
-    const duration = endMinutes - startMinutes;
+    const startHour = start.getHours();
+    const startMinutes = start.getMinutes();
+    const endHour = end.getHours();
+    const endMinutes = end.getMinutes();
+
+    // Get the active hours to calculate relative position
+    const activeHours = getActiveHours();
+    const firstActiveHour = activeHours[0];
+    const totalActiveHours = activeHours.length;
+
+    // Calculate position relative to first active hour
+    const relativeStartMinutes = (startHour - firstActiveHour) * 60 + startMinutes;
+    const relativeEndMinutes = (endHour - firstActiveHour) * 60 + endMinutes;
+    const duration = relativeEndMinutes - relativeStartMinutes;
+    const totalActiveMinutes = totalActiveHours * 60;
 
     return {
-      top: `${(startMinutes / 1440) * 100}%`,
-      height: `${(duration / 1440) * 100}%`,
+      top: `${(relativeStartMinutes / totalActiveMinutes) * 100}%`,
+      height: `${(duration / totalActiveMinutes) * 100}%`,
     };
   };
 
