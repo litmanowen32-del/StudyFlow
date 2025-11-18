@@ -52,18 +52,25 @@ export const HourlyCalendar = () => {
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const hours = Array.from({ length: 24 }, (_, i) => i);
   
-  const isHourInSleepTime = (hour: number) => {
+  const getActiveHours = () => {
     const sleepStartHour = parseInt(sleepStart.split(':')[0]);
     const sleepEndHour = parseInt(sleepEnd.split(':')[0]);
     
-    if (sleepStartHour < sleepEndHour) {
-      return hour >= sleepStartHour && hour < sleepEndHour;
-    } else {
-      return hour >= sleepStartHour || hour < sleepEndHour;
-    }
+    const allHours = Array.from({ length: 24 }, (_, i) => i);
+    
+    return allHours.filter(hour => {
+      if (sleepStartHour < sleepEndHour) {
+        // Sleep period doesn't cross midnight (e.g., 01:00 to 07:00)
+        return hour < sleepStartHour || hour >= sleepEndHour;
+      } else {
+        // Sleep period crosses midnight (e.g., 23:00 to 07:00)
+        return hour >= sleepEndHour && hour < sleepStartHour;
+      }
+    });
   };
+  
+  const hours = getActiveHours();
 
   useEffect(() => {
     if (user) {
@@ -483,27 +490,16 @@ export const HourlyCalendar = () => {
 
             {days.map((day, dayIndex) => (
               <div key={dayIndex} className="relative border-r last:border-r-0">
-                {hours.map((hour) => {
-                  const isSleepHour = isHourInSleepTime(hour);
-                  return (
-                    <div
-                      key={hour}
-                      className={`border-b transition-colors ${
-                        isSleepHour 
-                          ? 'bg-muted/40 cursor-not-allowed' 
-                          : 'hover:bg-accent/50 cursor-pointer'
-                      }`}
-                      style={{ height: `${60 / timeIncrement * 60}px` }}
-                      onDragOver={isSleepHour ? undefined : handleDragOver}
-                      onDrop={isSleepHour ? undefined : (e) => handleDrop(e, day, hour)}
-                      onClick={isSleepHour ? undefined : () => setCreateDialog({ open: true, day, hour })}
-                    >
-                      {isSleepHour && (
-                        <span className="text-xs text-muted-foreground/50 pl-2">Sleep</span>
-                      )}
-                    </div>
-                  );
-                })}
+                {hours.map((hour) => (
+                  <div
+                    key={hour}
+                    className="border-b transition-colors hover:bg-accent/50 cursor-pointer"
+                    style={{ height: `${60 / timeIncrement * 60}px` }}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, day, hour)}
+                    onClick={() => setCreateDialog({ open: true, day, hour })}
+                  />
+                ))}
 
                 {events.map((event) => {
                   const position = getEventPosition(event, day);
