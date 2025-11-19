@@ -7,6 +7,12 @@ import { PendingTasks } from "@/components/PendingTasks";
 
 const Calendar = () => {
   const [view, setView] = useState<"hourly" | "monthly">("hourly");
+  const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
+
+  const handleDayClick = (date: Date) => {
+    setSelectedWeek(date);
+    setView("hourly");
+  };
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -32,11 +38,11 @@ const Calendar = () => {
         </TabsList>
 
         <TabsContent value="hourly">
-          <HourlyCalendar />
+          <HourlyCalendar selectedWeek={selectedWeek} />
         </TabsContent>
 
         <TabsContent value="monthly">
-          <MonthlyCalendar />
+          <MonthlyCalendar onDayClick={handleDayClick} />
         </TabsContent>
       </Tabs>
     </div>
