@@ -234,6 +234,13 @@ export const HourlyCalendar = () => {
     e.preventDefault();
     if (!draggedEvent) return;
 
+    // Validate drop location is during active hours
+    const activeHours = getActiveHours();
+    if (!activeHours.includes(hour)) {
+      toast({ title: "Cannot move events to sleep hours", variant: "destructive" });
+      return;
+    }
+
     const newStart = new Date(day);
     newStart.setHours(hour, 0, 0, 0);
     
@@ -323,6 +330,13 @@ export const HourlyCalendar = () => {
     const endTime = new Date(createDialog.day);
     endTime.setHours(endHours, endMinutes, 0, 0);
 
+    // Validate event is not during sleep time
+    const activeHours = getActiveHours();
+    if (!activeHours.includes(startTime.getHours())) {
+      toast({ title: "Cannot create events during sleep hours", variant: "destructive" });
+      return;
+    }
+
     if (newEvent.applyToMultipleDays && newEvent.selectedDays.length > 0) {
       const eventsToCreate = newEvent.selectedDays.map(dayIndex => {
         const eventDay = addDays(weekStart, dayIndex);
@@ -398,13 +412,13 @@ export const HourlyCalendar = () => {
 
   const getEventColor = (type: string) => {
     const colors: Record<string, string> = {
-      exam: "bg-red-500",
-      assignment: "bg-orange-500",
-      study: "bg-green-500",
-      class: "bg-blue-500",
-      meeting: "bg-purple-500",
+      exam: "bg-destructive",
+      assignment: "bg-warning",
+      study: "bg-success",
+      class: "bg-accent",
+      meeting: "bg-primary",
     };
-    return colors[type] || "bg-gray-500";
+    return colors[type] || "bg-muted";
   };
 
   const getEventPosition = (event: CalendarEvent, day: Date) => {
@@ -419,11 +433,24 @@ export const HourlyCalendar = () => {
 
     // Get the active hours to calculate relative position
     const activeHours = getActiveHours();
+    
+    // Don't render events that fall during sleep hours
+    if (!activeHours.includes(startHour)) return null;
+    
     const firstActiveHour = activeHours[0];
+    const lastActiveHour = activeHours[activeHours.length - 1];
+    
+    // Don't render events that end outside active hours
+    if (endHour > lastActiveHour + 1) return null;
+    
     const totalActiveHours = activeHours.length;
 
-    // Calculate position relative to first active hour
-    const relativeStartMinutes = (startHour - firstActiveHour) * 60 + startMinutes;
+    // Find the index of the start hour in active hours
+    const startIndex = activeHours.indexOf(startHour);
+    if (startIndex === -1) return null;
+
+    // Calculate position relative to the active hours array
+    const relativeStartMinutes = startIndex * 60 + startMinutes;
     const relativeEndMinutes = (endHour - firstActiveHour) * 60 + endMinutes;
     const duration = relativeEndMinutes - relativeStartMinutes;
     const totalActiveMinutes = totalActiveHours * 60;
