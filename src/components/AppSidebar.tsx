@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/tooltip";
 
 const navItems = [
-  { icon: Library, label: "Study Sets", path: "/study" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Clock, label: "Focus Timer", path: "/focus" },
@@ -31,6 +30,7 @@ const navItems = [
   { icon: Flame, label: "Habits", path: "/habits" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: BookOpen, label: "Study Assistant", path: "/study-assistant" },
+  { icon: Library, label: "Study Sets", path: "/study" },
 ];
 
 export function AppSidebar() {
