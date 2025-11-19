@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export const MonthlyCalendar = () => {
+export const MonthlyCalendar = ({ onDayClick }: { onDayClick?: (date: Date) => void }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -244,6 +244,10 @@ export const MonthlyCalendar = () => {
                 className={`aspect-square p-3 transition-all hover:shadow-glow cursor-pointer ${
                   isToday ? "border-primary border-2 bg-primary/5 shadow-glow" : ""
                 }`}
+                onClick={() => {
+                  const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                  onDayClick?.(clickedDate);
+                }}
               >
                 <div className="flex h-full flex-col">
                   <div className={`text-sm font-semibold mb-1 ${isToday ? "text-primary" : "text-foreground"}`}>

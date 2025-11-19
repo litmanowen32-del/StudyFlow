@@ -27,10 +27,10 @@ interface CalendarEvent {
   recurring_days?: number[];
 }
 
-export const HourlyCalendar = () => {
+export const HourlyCalendar = ({ selectedWeek }: { selectedWeek?: Date }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [currentWeek, setCurrentWeek] = useState(selectedWeek || new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [timeIncrement, setTimeIncrement] = useState(60);
   const [draggedEvent, setDraggedEvent] = useState<CalendarEvent | null>(null);
@@ -52,6 +52,13 @@ export const HourlyCalendar = () => {
 
   const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  // Update currentWeek when selectedWeek prop changes
+  useEffect(() => {
+    if (selectedWeek) {
+      setCurrentWeek(selectedWeek);
+    }
+  }, [selectedWeek]);
   
   const getActiveHours = () => {
     const sleepStartHour = parseInt(sleepStart.split(':')[0]);
