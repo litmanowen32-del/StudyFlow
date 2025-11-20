@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { topic, image } = await req.json();
+    const { messages, images } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
@@ -39,27 +39,50 @@ If given a topic without an image:
 
 Always be supportive, clear, and educational. Focus on teaching understanding, not just providing answers.`;
 
-    let userContent;
+    // Build conversation messages for API
+    const apiMessages: any[] = [{ role: "system", content: systemPrompt }];
     
-    if (image) {
-      // Handle image analysis with vision
-      userContent = [
-        {
-          type: "text",
-          text: topic ? 
-            `I need help with this assignment. ${topic}\n\nPlease analyze the image and teach me how to approach and complete this assignment.` :
-            "Please analyze this assignment image and teach me how to approach and complete it step by step."
-        },
-        {
-          type: "image_url",
-          image_url: {
-            url: `data:image/jpeg;base64,${image}`
+    // Add conversation history
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+      
+      if (msg.role === "user") {
+        // If this is the last user message and we have images, add them
+        if (i === messages.length - 1 && images && images.length > 0) {
+          const contentParts: any[] = [];
+          
+          if (msg.content) {
+            contentParts.push({
+              type: "text",
+              text: msg.content
+            });
           }
+          
+          images.forEach((image: string) => {
+            contentParts.push({
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${image}`
+              }
+            });
+          });
+          
+          apiMessages.push({
+            role: "user",
+            content: contentParts
+          });
+        } else {
+          apiMessages.push({
+            role: "user",
+            content: msg.content
+          });
         }
-      ];
-    } else {
-      // Handle text-only topic
-      userContent = `Please help me understand this topic: ${topic}\n\nProvide a comprehensive explanation with study tips.`;
+      } else {
+        apiMessages.push({
+          role: "assistant",
+          content: msg.content
+        });
+      }
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -70,10 +93,7 @@ Always be supportive, clear, and educational. Focus on teaching understanding, n
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userContent }
-        ],
+        messages: apiMessages,
       }),
     });
 
