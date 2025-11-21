@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Sparkles, Mail, Upload, BookOpen, RefreshCw } from "lucide-react";
+import { User, Bell, Palette, Shield, Sparkles, Mail, Upload, BookOpen, RefreshCw, Heart } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,7 @@ const Settings = () => {
   const [googleClientId, setGoogleClientId] = useState<string | null>(null);
   const [sleepStartTime, setSleepStartTime] = useState('23:00');
   const [sleepEndTime, setSleepEndTime] = useState('07:00');
+  const [studyBuddyEnabled, setStudyBuddyEnabled] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -31,6 +32,7 @@ const Settings = () => {
       checkGoogleConnection();
       fetchGoogleConfig();
       fetchSleepPreferences();
+      fetchStudyBuddyPreference();
     }
   }, [user]);
 
@@ -310,6 +312,41 @@ const Settings = () => {
     }
   };
 
+  const fetchStudyBuddyPreference = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('user_preferences')
+      .select('study_buddy_enabled')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (data) {
+      setStudyBuddyEnabled(data.study_buddy_enabled || false);
+    }
+  };
+
+  const updateStudyBuddyPreference = async (enabled: boolean) => {
+    if (!user) return;
+    
+    const { error } = await supabase
+      .from('user_preferences')
+      .upsert({
+        user_id: user.id,
+        study_buddy_enabled: enabled,
+      });
+
+    if (error) {
+      toast({ 
+        title: "Error updating study buddy", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } else {
+      setStudyBuddyEnabled(enabled);
+      toast({ title: enabled ? "Study Buddy enabled!" : "Study Buddy disabled" });
+    }
+  };
+
   return (
     <div className="container mx-auto px-6 py-8 max-w-4xl">
       <div className="mb-8 animate-fade-in">
@@ -537,6 +574,33 @@ const Settings = () => {
               </Button>
             </div>
           )}
+        </Card>
+
+        <Card className="p-6 shadow-soft border-primary/20 bg-gradient-card">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-lg bg-primary/10 p-2">
+              <Heart className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Study Buddy</h2>
+              <p className="text-sm text-muted-foreground">
+                Earn XP and feed your virtual companion
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Enable Study Buddy to get a cute companion that you can feed with XP earned by completing tasks!
+          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Enable Study Buddy</Label>
+              <p className="text-sm text-muted-foreground">Unlock your virtual study companion</p>
+            </div>
+            <Switch
+              checked={studyBuddyEnabled}
+              onCheckedChange={updateStudyBuddyPreference}
+            />
+          </div>
         </Card>
 
         <Card className="p-6 shadow-soft">

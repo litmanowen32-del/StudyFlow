@@ -67,6 +67,8 @@ const Tasks = () => {
   };
 
   const toggleTask = async (taskId: string, completed: boolean) => {
+    const task = tasks.find(t => t.id === taskId);
+    
     const { error } = await supabase
       .from("tasks")
       .update({ 
@@ -76,7 +78,34 @@ const Tasks = () => {
       .eq("id", taskId);
 
     if (!error) {
-      toast({ title: completed ? "Task reopened" : "Task completed!" });
+      // Award XP when completing a task
+      if (!completed && task) {
+        const xpReward = task.priority === 'high' ? 20 : task.priority === 'medium' ? 10 : 5;
+        
+        // Get current XP
+        const { data: prefs } = await supabase
+          .from('user_preferences')
+          .select('study_buddy_xp, study_buddy_enabled')
+          .eq('user_id', user?.id)
+          .single();
+        
+        if (prefs?.study_buddy_enabled) {
+          const newXp = (prefs.study_buddy_xp || 0) + xpReward;
+          await supabase
+            .from('user_preferences')
+            .update({ study_buddy_xp: newXp })
+            .eq('user_id', user?.id);
+          
+          toast({ 
+            title: "Task completed! 🎉", 
+            description: `You earned ${xpReward} XP! Feed your study buddy!` 
+          });
+        } else {
+          toast({ title: "Task completed!" });
+        }
+      } else {
+        toast({ title: "Task reopened" });
+      }
       fetchTasks();
     }
   };

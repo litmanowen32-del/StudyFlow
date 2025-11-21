@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import HabitTracker from "./pages/HabitTracker";
 import StudyAssistant from "./pages/StudyAssistant";
 import Study from "./pages/Study";
+import StudyBuddy from "./pages/StudyBuddy";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 
@@ -59,6 +60,7 @@ const App = () => (
           <Route path="/analytics" element={<ProtectedRoute><AppLayout><Analytics /></AppLayout></ProtectedRoute>} />
           <Route path="/study-assistant" element={<ProtectedRoute><AppLayout><StudyAssistant /></AppLayout></ProtectedRoute>} />
           <Route path="/study" element={<ProtectedRoute><AppLayout><Study /></AppLayout></ProtectedRoute>} />
+          <Route path="/study-buddy" element={<ProtectedRoute><AppLayout><StudyBuddy /></AppLayout></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
           <Route path="/about" element={<ProtectedRoute><AppLayout><About /></AppLayout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
