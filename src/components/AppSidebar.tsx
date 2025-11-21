@@ -1,8 +1,10 @@
-import { Calendar, CheckSquare, Clock, BarChart3, Target, Flame, BookOpen, Settings, LogOut, GraduationCap, Info, Library } from "lucide-react";
+import { Calendar, CheckSquare, Clock, BarChart3, Target, Flame, BookOpen, Settings, LogOut, GraduationCap, Info, Library, Heart } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "./ui/button";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -37,6 +39,23 @@ export function AppSidebar() {
   const { open } = useSidebar();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [studyBuddyEnabled, setStudyBuddyEnabled] = useState(false);
+
+  useEffect(() => {
+    if (user) fetchStudyBuddyPreference();
+  }, [user]);
+
+  const fetchStudyBuddyPreference = async () => {
+    const { data } = await supabase
+      .from('user_preferences')
+      .select('study_buddy_enabled')
+      .eq('user_id', user?.id)
+      .single();
+    
+    if (data) {
+      setStudyBuddyEnabled(data.study_buddy_enabled || false);
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -96,6 +115,35 @@ export function AppSidebar() {
                     </Tooltip>
                   </SidebarMenuItem>
                 ))}
+                {studyBuddyEnabled && (
+                  <SidebarMenuItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to="/study-buddy"
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                                isActive
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+                              )
+                            }
+                          >
+                            <Heart className="h-5 w-5" />
+                            <span>Study Buddy</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {!open && (
+                        <TooltipContent side="right">
+                          <p>Study Buddy</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </SidebarMenuItem>
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
