@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Heart, Sparkles } from "lucide-react";
+import { Heart, Sparkles, Gamepad2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -8,6 +8,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MatchGame } from "@/components/games/MatchGame";
+import { GravityGame } from "@/components/games/GravityGame";
+import { BlastGame } from "@/components/games/BlastGame";
 
 const StudyBuddy = () => {
   const { user } = useAuth();
@@ -15,10 +19,55 @@ const StudyBuddy = () => {
   const [xp, setXp] = useState(0);
   const [hunger, setHunger] = useState(100);
   const [buddyType, setBuddyType] = useState("cat");
+  const [studySets, setStudySets] = useState<any[]>([]);
+  const [selectedSetId, setSelectedSetId] = useState<string>("");
+  const [flashcards, setFlashcards] = useState<any[]>([]);
+  const [gameMode, setGameMode] = useState<'none' | 'match' | 'gravity' | 'blast'>('none');
+  const [lastHungerUpdate, setLastHungerUpdate] = useState(Date.now());
 
   useEffect(() => {
-    if (user) fetchBuddyData();
+    if (user) {
+      fetchBuddyData();
+      fetchStudySets();
+    }
   }, [user]);
+
+  useEffect(() => {
+    if (selectedSetId) {
+      fetchFlashcards();
+    }
+  }, [selectedSetId]);
+
+  // Hunger decay system - decreases by 1 every minute
+  useEffect(() => {
+    const hungerInterval = setInterval(async () => {
+      if (hunger > 0 && user) {
+        const newHunger = Math.max(hunger - 1, 0);
+        setHunger(newHunger);
+        
+        // Update database
+        await supabase
+          .from('user_preferences')
+          .update({ study_buddy_hunger: newHunger })
+          .eq('user_id', user.id);
+        
+        if (newHunger === 0) {
+          toast({ 
+            title: "Your buddy is starving! 😢", 
+            description: "Feed your buddy soon!",
+            variant: "destructive" 
+          });
+        } else if (newHunger === 20) {
+          toast({ 
+            title: "Your buddy is getting very hungry!", 
+            description: "Consider feeding them soon." 
+          });
+        }
+      }
+    }, 60000); // Every minute
+
+    return () => clearInterval(hungerInterval);
+  }, [hunger, user]);
 
   const fetchBuddyData = async () => {
     const { data } = await supabase
@@ -105,6 +154,89 @@ const StudyBuddy = () => {
     if (hunger > 40) return "bg-yellow-500";
     return "bg-destructive";
   };
+
+  const fetchStudySets = async () => {
+    const { data } = await supabase
+      .from('study_sets')
+      .select('*')
+      .eq('user_id', user?.id)
+      .order('created_at', { ascending: false });
+    
+    if (data) {
+      setStudySets(data);
+    }
+  };
+
+  const fetchFlashcards = async () => {
+    const { data } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('study_set_id', selectedSetId);
+    
+    if (data) {
+      setFlashcards(data);
+    }
+  };
+
+  const handleGameComplete = async (score: number) => {
+    const xpEarned = Math.floor(score / 10);
+    const newXp = xp + xpEarned;
+    
+    const { error } = await supabase
+      .from('user_preferences')
+      .update({ study_buddy_xp: newXp })
+      .eq('user_id', user?.id);
+
+    if (!error) {
+      setXp(newXp);
+      toast({ 
+        title: "Game Complete! 🎉", 
+        description: `You earned ${xpEarned} XP! Your buddy is proud!` 
+      });
+    }
+    
+    setGameMode('none');
+  };
+
+  const startGame = (mode: 'match' | 'gravity' | 'blast') => {
+    if (flashcards.length === 0) {
+      toast({ 
+        title: "No flashcards available", 
+        description: "Please select a study set with flashcards",
+        variant: "destructive" 
+      });
+      return;
+    }
+    setGameMode(mode);
+  };
+
+  if (gameMode !== 'none') {
+    return (
+      <div className="container mx-auto px-6 py-8">
+        {gameMode === 'match' && (
+          <MatchGame 
+            flashcards={flashcards} 
+            onComplete={handleGameComplete}
+            onExit={() => setGameMode('none')}
+          />
+        )}
+        {gameMode === 'gravity' && (
+          <GravityGame 
+            flashcards={flashcards} 
+            onComplete={handleGameComplete}
+            onExit={() => setGameMode('none')}
+          />
+        )}
+        {gameMode === 'blast' && (
+          <BlastGame 
+            flashcards={flashcards} 
+            onComplete={handleGameComplete}
+            onExit={() => setGameMode('none')}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-6 py-8 max-w-4xl">
@@ -208,6 +340,78 @@ const StudyBuddy = () => {
                   </p>
                 </div>
               </div>
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-primary/10 p-1 mt-0.5">
+                  <div className="h-2 w-2 rounded-full bg-primary"></div>
+                </div>
+                <div>
+                  <p className="font-medium">Play Games</p>
+                  <p className="text-sm text-muted-foreground">
+                    Earn XP based on your performance!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Games Section */}
+          <Card className="p-6 shadow-soft border-primary/20 bg-gradient-card">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <Gamepad2 className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold">Study Games</h3>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm mb-2 block">Select Study Set</Label>
+                <Select value={selectedSetId} onValueChange={setSelectedSetId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a study set..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {studySets.map(set => (
+                      <SelectItem key={set.id} value={set.id}>
+                        {set.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2">
+                <Button
+                  onClick={() => startGame('match')}
+                  variant="outline"
+                  className="justify-start"
+                  disabled={!selectedSetId}
+                >
+                  🎯 Match - Pair terms with definitions
+                </Button>
+                <Button
+                  onClick={() => startGame('gravity')}
+                  variant="outline"
+                  className="justify-start"
+                  disabled={!selectedSetId}
+                >
+                  🚀 Gravity - Type answers before cards fall
+                </Button>
+                <Button
+                  onClick={() => startGame('blast')}
+                  variant="outline"
+                  className="justify-start"
+                  disabled={!selectedSetId}
+                >
+                  ⚡ Blast - Quick-fire multiple choice
+                </Button>
+              </div>
+              
+              {!selectedSetId && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Select a study set to unlock games
+                </p>
+              )}
             </div>
           </Card>
 
