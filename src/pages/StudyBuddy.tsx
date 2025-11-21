@@ -6,6 +6,8 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 const StudyBuddy = () => {
   const { user } = useAuth();
@@ -61,14 +63,33 @@ const StudyBuddy = () => {
     }
   };
 
+  const changeBuddyType = async (type: string) => {
+    if (!user) return;
+    
+    const { error } = await supabase
+      .from('user_preferences')
+      .update({ study_buddy_type: type })
+      .eq('user_id', user.id);
+
+    if (!error) {
+      setBuddyType(type);
+      toast({ title: `Study Buddy changed to ${type}!` });
+    }
+  };
+
   const getBuddyEmoji = () => {
     switch (buddyType) {
       case "cat": return "🐱";
       case "dog": return "🐶";
-      case "fox": return "🦊";
-      case "bear": return "🐻";
-      case "panda": return "🐼";
       default: return "🐱";
+    }
+  };
+
+  const getBuddyName = () => {
+    switch (buddyType) {
+      case "cat": return "Whiskers";
+      case "dog": return "Buddy";
+      default: return "Friend";
     }
   };
 
@@ -108,9 +129,30 @@ const StudyBuddy = () => {
               {getBuddyEmoji()}
             </div>
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">Your Study Buddy</h2>
+              <h2 className="text-2xl font-bold mb-2">{getBuddyName()}</h2>
               <p className="text-muted-foreground">{getBuddyMood()}</p>
             </div>
+            
+            {/* Animal Selection */}
+            <Card className="p-4 w-full bg-background/50">
+              <Label className="text-sm font-medium mb-3 block">Choose Your Buddy</Label>
+              <RadioGroup value={buddyType} onValueChange={changeBuddyType} className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="cat" id="cat" />
+                  <Label htmlFor="cat" className="cursor-pointer flex items-center gap-2">
+                    <span className="text-2xl">🐱</span>
+                    <span>Cat</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="dog" id="dog" />
+                  <Label htmlFor="dog" className="cursor-pointer flex items-center gap-2">
+                    <span className="text-2xl">🐶</span>
+                    <span>Dog</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </Card>
             
             <div className="w-full space-y-4">
               <div>
