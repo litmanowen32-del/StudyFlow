@@ -9,7 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, BookOpen, Trash2, Edit, Play, Shuffle, Sparkles, Trophy, PenTool, CheckCircle } from "lucide-react";
+import { Plus, BookOpen, Trash2, Edit, Play, Shuffle, Sparkles, Trophy, PenTool, CheckCircle, Zap, Rocket } from "lucide-react";
+import { MatchGame } from "@/components/games/MatchGame";
+import { GravityGame } from "@/components/games/GravityGame";
+import { BlastGame } from "@/components/games/BlastGame";
 
 interface StudySet {
   id: string;
@@ -34,7 +37,7 @@ const Study = () => {
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [isCreateSetOpen, setIsCreateSetOpen] = useState(false);
   const [isCreateCardOpen, setIsCreateCardOpen] = useState(false);
-  const [studyMode, setStudyMode] = useState<'view' | 'flashcards' | 'shuffle' | 'match' | 'write' | 'quiz'>('view');
+  const [studyMode, setStudyMode] = useState<'view' | 'flashcards' | 'shuffle' | 'match' | 'write' | 'quiz' | 'match-game' | 'gravity-game' | 'blast-game'>('view');
   const [matchedPairs, setMatchedPairs] = useState<string[]>([]);
   const [selectedTerms, setSelectedTerms] = useState<string[]>([]);
   const [writeAnswers, setWriteAnswers] = useState<{ [key: string]: string }>({});
@@ -365,6 +368,71 @@ const Study = () => {
   const submitQuiz = () => {
     setShowQuizResults(true);
   };
+
+  const handleGameComplete = async (score: number, gameType: string) => {
+    const xpEarned = Math.floor(score / 10);
+    
+    // Award XP to study buddy
+    if (user) {
+      const { data: prefs } = await (supabase as any)
+        .from('user_preferences')
+        .select('study_buddy_xp, study_buddy_enabled')
+        .eq('user_id', user.id)
+        .single();
+
+      if (prefs?.study_buddy_enabled) {
+        await (supabase as any)
+          .from('user_preferences')
+          .update({ 
+            study_buddy_xp: (prefs.study_buddy_xp || 0) + xpEarned 
+          })
+          .eq('user_id', user.id);
+
+        toast({ 
+          title: `🎮 Game Complete!`, 
+          description: `Score: ${score} | +${xpEarned} XP for your study buddy!` 
+        });
+      }
+    }
+    
+    setStudyMode('view');
+  };
+
+  if (studyMode === 'match-game') {
+    return (
+      <div className="container mx-auto p-4 md:p-6">
+        <MatchGame 
+          flashcards={flashcards}
+          onComplete={(score) => handleGameComplete(score, 'match')}
+          onExit={() => setStudyMode('view')}
+        />
+      </div>
+    );
+  }
+
+  if (studyMode === 'gravity-game') {
+    return (
+      <div className="container mx-auto p-4 md:p-6">
+        <GravityGame 
+          flashcards={flashcards}
+          onComplete={(score) => handleGameComplete(score, 'gravity')}
+          onExit={() => setStudyMode('view')}
+        />
+      </div>
+    );
+  }
+
+  if (studyMode === 'blast-game') {
+    return (
+      <div className="container mx-auto p-4 md:p-6">
+        <BlastGame 
+          flashcards={flashcards}
+          onComplete={(score) => handleGameComplete(score, 'blast')}
+          onExit={() => setStudyMode('view')}
+        />
+      </div>
+    );
+  }
 
   if (!selectedSet) {
     return (
@@ -860,9 +928,17 @@ const Study = () => {
           
           <TabsContent value="games" className="space-y-4">
             <div className="flex flex-wrap gap-2 justify-center">
-              <Button variant="outline" onClick={startMatchGame} disabled={flashcards.length === 0}>
+              <Button variant="outline" onClick={() => setStudyMode('match-game')} disabled={flashcards.length < 6}>
                 <Trophy className="w-4 h-4 mr-2" />
                 Match Game
+              </Button>
+              <Button variant="outline" onClick={() => setStudyMode('gravity-game')} disabled={flashcards.length === 0}>
+                <Rocket className="w-4 h-4 mr-2" />
+                Gravity Game
+              </Button>
+              <Button variant="outline" onClick={() => setStudyMode('blast-game')} disabled={flashcards.length === 0}>
+                <Zap className="w-4 h-4 mr-2" />
+                Blast Game
               </Button>
               <Button 
                 variant="outline" 

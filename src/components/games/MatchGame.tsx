@@ -19,12 +19,22 @@ export const MatchGame = ({ flashcards, onComplete, onExit }: MatchGameProps) =>
   const [matchedPairs, setMatchedPairs] = useState<string[]>([]);
   const [selectedTerms, setSelectedTerms] = useState<string[]>([]);
   const [startTime] = useState(Date.now());
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [gameCards, setGameCards] = useState<any[]>([]);
 
+  // Update elapsed time every second
   useEffect(() => {
-    // Shuffle cards for the game
-    const terms = flashcards.map(card => ({ id: card.id, text: card.front, type: 'term' }));
-    const definitions = [...flashcards].sort(() => Math.random() - 0.5).map(card => ({ id: card.id, text: card.back, type: 'definition' }));
+    const timer = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [startTime]);
+
+  useEffect(() => {
+    // Randomly select 6 cards from the set
+    const shuffled = [...flashcards].sort(() => Math.random() - 0.5).slice(0, 6);
+    const terms = shuffled.map(card => ({ id: card.id, text: card.front, type: 'term' }));
+    const definitions = [...shuffled].sort(() => Math.random() - 0.5).map(card => ({ id: card.id, text: card.back, type: 'definition' }));
     setGameCards([...terms, ...definitions].sort(() => Math.random() - 0.5));
   }, [flashcards]);
 
@@ -48,7 +58,7 @@ export const MatchGame = ({ flashcards, onComplete, onExit }: MatchGameProps) =>
         setMatchedPairs([...matchedPairs, firstId]);
         setSelectedTerms([]);
         
-        if (matchedPairs.length + 1 === flashcards.length) {
+        if (matchedPairs.length + 1 === 6) {
           const timeTaken = Math.floor((Date.now() - startTime) / 1000);
           const score = Math.max(100 - timeTaken, 20);
           setTimeout(() => onComplete(score), 500);
@@ -71,7 +81,7 @@ export const MatchGame = ({ flashcards, onComplete, onExit }: MatchGameProps) =>
             Match Game
           </h2>
           <p className="text-muted-foreground">
-            Matched: {matchedPairs.length} / {flashcards.length}
+            Matched: {matchedPairs.length} / 6 | Time: {elapsedTime}s
           </p>
         </div>
         <div className="w-20" />
