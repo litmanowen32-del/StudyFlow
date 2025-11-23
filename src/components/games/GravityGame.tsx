@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Rocket } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Flashcard {
   id: string;
@@ -53,7 +54,7 @@ export const GravityGame = ({ flashcards, onComplete, onExit }: GravityGameProps
       term: card.front,
       answer: card.back.toLowerCase().trim(),
       position: 0,
-      speed: 0.5 + Math.random() * 0.5,
+      speed: 0.15 + Math.random() * 0.15,
     };
     setFallingCards(prev => [...prev, newCard]);
   };
@@ -87,19 +88,32 @@ export const GravityGame = ({ flashcards, onComplete, onExit }: GravityGameProps
     }
   };
 
-  const handleAnswer = (e: React.FormEvent) => {
+  const handleAnswer = async (e: React.FormEvent) => {
     e.preventDefault();
     const answer = currentAnswer.toLowerCase().trim();
     
-    setFallingCards(prev => {
-      const matchIndex = prev.findIndex(card => card.answer === answer);
-      if (matchIndex !== -1) {
+    if (!answer || fallingCards.length === 0) return;
+
+    // Check answer with AI
+    const cardToCheck = fallingCards[0]; // Check against the first falling card
+    try {
+      const { data, error } = await supabase.functions.invoke('check-gravity-answer', {
+        body: { 
+          userAnswer: answer,
+          correctAnswer: cardToCheck.answer
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.isCorrect) {
         setScore(s => s + 10);
         setCurrentAnswer("");
-        return prev.filter((_, idx) => idx !== matchIndex);
+        setFallingCards(prev => prev.filter((_, idx) => idx !== 0));
       }
-      return prev;
-    });
+    } catch (err) {
+      console.error('Error checking answer:', err);
+    }
   };
 
   useEffect(() => {

@@ -103,7 +103,7 @@ export const BlastGame = ({ flashcards, onComplete, onExit }: BlastGameProps) =>
         <p className="text-sm text-muted-foreground mb-2">Question {currentCardIndex + 1} of {flashcards.length}</p>
         <h3 className="text-3xl font-bold mb-8">{currentCard.front}</h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
           {options.map((option, idx) => (
             <Button
               key={idx}
@@ -116,7 +116,7 @@ export const BlastGame = ({ flashcards, onComplete, onExit }: BlastGameProps) =>
                     : "destructive"
                   : "outline"
               }
-              className={`h-auto py-4 px-6 text-lg transition-all ${
+              className={`h-auto py-6 px-6 text-base min-h-[80px] whitespace-normal transition-all ${
                 selectedAnswer === option && isCorrect
                   ? "bg-success hover:bg-success"
                   : ""
