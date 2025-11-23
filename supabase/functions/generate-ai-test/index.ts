@@ -27,7 +27,7 @@ serve(async (req) => {
       });
     }
 
-    const { setId, flashcards } = await req.json();
+    const { flashcards, setTitle } = await req.json();
     
     if (!flashcards || flashcards.length === 0) {
       return new Response(JSON.stringify({ error: 'No flashcards provided' }), {
@@ -135,13 +135,17 @@ Make questions that test deep understanding, not just memorization. Vary the dif
 
     const testData = JSON.parse(toolCall.function.arguments);
 
-    return new Response(JSON.stringify(testData), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      questions: testData.questions 
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('Error in generate-ai-test:', error);
     return new Response(JSON.stringify({ 
+      success: false,
       error: error instanceof Error ? error.message : 'Unknown error' 
     }), {
       status: 500,
