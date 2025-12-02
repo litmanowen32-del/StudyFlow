@@ -13,19 +13,41 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization');
+    console.log('Auth header present:', !!authHeader);
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+      { global: { headers: { Authorization: authHeader ?? '' } } }
     );
 
-    const { data: { user } } = await supabaseClient.auth.getUser();
+    // Get the JWT token from the authorization header
+    const token = authHeader?.replace('Bearer ', '');
+    
+    if (!token) {
+      console.error('No token found in authorization header');
+      return new Response(JSON.stringify({ error: 'Unauthorized - No token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    
+    if (authError) {
+      console.error('Auth error:', authError.message);
+    }
+    
     if (!user) {
+      console.error('No user found for token');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    console.log('User authenticated:', user.id);
 
     const { flashcards, setTitle } = await req.json();
     
