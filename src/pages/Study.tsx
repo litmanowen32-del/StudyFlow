@@ -923,6 +923,23 @@ const Study = () => {
                 <PenTool className="w-4 h-4 mr-2" />
                 Write
               </Button>
+              <Button 
+                variant="outline" 
+                onClick={generateAIQuiz} 
+                disabled={flashcards.length === 0 || isGeneratingQuiz}
+              >
+                {isGeneratingQuiz ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Quiz
+                  </>
+                )}
+              </Button>
             </div>
           </TabsContent>
           
@@ -939,23 +956,6 @@ const Study = () => {
               <Button variant="outline" onClick={() => setStudyMode('blast-game')} disabled={flashcards.length === 0}>
                 <Zap className="w-4 h-4 mr-2" />
                 Blast Game
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={generateAIQuiz} 
-                disabled={flashcards.length === 0 || isGeneratingQuiz}
-              >
-                {isGeneratingQuiz ? (
-                  <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    AI Quiz
-                  </>
-                )}
               </Button>
             </div>
           </TabsContent>
