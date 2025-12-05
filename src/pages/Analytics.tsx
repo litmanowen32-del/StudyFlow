@@ -67,28 +67,24 @@ const Analytics = () => {
       icon: Clock, 
       label: "Study Hours This Week", 
       value: stats.studyHours.toFixed(1), 
-      change: "+12%", 
       color: "text-primary" 
     },
     { 
       icon: CheckCircle, 
       label: "Tasks Completed", 
       value: stats.tasksCompleted.toString(), 
-      change: "+8%", 
       color: "text-success" 
     },
     { 
       icon: Target, 
       label: "Goals Achieved", 
       value: stats.goalsAchieved.toString(), 
-      change: "+25%", 
       color: "text-accent" 
     },
     { 
       icon: TrendingUp, 
       label: "Productivity Score", 
       value: `${stats.productivityScore}%`, 
-      change: "+5%", 
       color: "text-warning" 
     },
   ];
@@ -116,18 +112,15 @@ const Analytics = () => {
             return (
               <div
                 key={index}
-                className="group relative overflow-hidden rounded-xl p-6 bg-card/80 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-glow"
+                className="group relative overflow-hidden rounded-xl p-6 bg-card/80 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-glow animate-fade-in"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
                 <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center mb-4">
                     <div className={`p-3 rounded-xl bg-gradient-primary shadow-soft ${stat.color}`}>
                       <Icon className="h-6 w-6" />
                     </div>
-                    <span className="text-sm font-bold text-success bg-success/10 px-2 py-1 rounded-full animate-pulse">
-                      {stat.change}
-                    </span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{stat.label}</p>
                   <p className={`text-4xl font-bold ${stat.color} tabular-nums`}>{stat.value}</p>

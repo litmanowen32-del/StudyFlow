@@ -111,12 +111,16 @@ const Tasks = () => {
   };
 
   const getDaysUntil = (dueDate: string) => {
-    if (!dueDate) return "No due date";
-    const days = Math.ceil((new Date(dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-    if (days < 0) return "Overdue";
-    if (days === 0) return "Due today";
-    if (days === 1) return "Due tomorrow";
-    return `Due in ${days} days`;
+    if (!dueDate) return { text: "No due date", isOverdue: false, days: null };
+    const now = new Date();
+    const due = new Date(dueDate);
+    const days = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const formattedDate = due.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    
+    if (days < 0) return { text: `Overdue by ${Math.abs(days)} day${Math.abs(days) !== 1 ? 's' : ''}`, isOverdue: true, days, formattedDate };
+    if (days === 0) return { text: "Due today", isOverdue: false, days: 0, formattedDate };
+    if (days === 1) return { text: "Due tomorrow", isOverdue: false, days: 1, formattedDate };
+    return { text: `Due in ${days} days`, isOverdue: false, days, formattedDate };
   };
 
   const getPriorityColor = (priority: string) => {
@@ -249,10 +253,22 @@ const Tasks = () => {
                       {task.description && (
                         <p className="mt-1 text-sm text-muted-foreground">{task.description}</p>
                       )}
-                      <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
-                        {task.subject && <span>{task.subject}</span>}
-                        {task.subject && task.due_date && <span>•</span>}
-                        {task.due_date && <span>{getDaysUntil(task.due_date)}</span>}
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                        {task.subject && <span className="text-muted-foreground">{task.subject}</span>}
+                        {task.subject && task.due_date && <span className="text-muted-foreground">•</span>}
+                        {task.due_date && (() => {
+                          const dueInfo = getDaysUntil(task.due_date);
+                          return (
+                            <div className="flex items-center gap-2">
+                              <span className={`font-medium ${dueInfo.isOverdue ? 'text-destructive animate-pulse' : dueInfo.days === 0 ? 'text-warning' : 'text-muted-foreground'}`}>
+                                {dueInfo.text}
+                              </span>
+                              {dueInfo.formattedDate && (
+                                <span className="text-xs text-muted-foreground/70">({dueInfo.formattedDate})</span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>

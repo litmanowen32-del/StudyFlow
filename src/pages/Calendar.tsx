@@ -33,15 +33,15 @@ const Calendar = () => {
 
       <Tabs value={view} onValueChange={(v) => setView(v as "hourly" | "monthly")} className="space-y-4">
         <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="hourly">Hourly View</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly View</TabsTrigger>
+          <TabsTrigger value="hourly" className="transition-all duration-200 data-[state=active]:animate-scale-in">Hourly View</TabsTrigger>
+          <TabsTrigger value="monthly" className="transition-all duration-200 data-[state=active]:animate-scale-in">Monthly View</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="hourly">
+        <TabsContent value="hourly" className="animate-fade-in">
           <HourlyCalendar selectedWeek={selectedWeek} />
         </TabsContent>
 
-        <TabsContent value="monthly">
+        <TabsContent value="monthly" className="animate-fade-in">
           <MonthlyCalendar onDayClick={handleDayClick} />
         </TabsContent>
       </Tabs>

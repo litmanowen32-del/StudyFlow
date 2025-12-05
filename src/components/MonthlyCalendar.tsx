@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,49 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+// US Federal Holidays for 2024-2026
+const getHolidays = (year: number) => {
+  const holidays: { [key: string]: string } = {};
+  
+  // Fixed holidays
+  holidays[`${year}-01-01`] = "New Year's Day";
+  holidays[`${year}-07-04`] = "Independence Day";
+  holidays[`${year}-11-11`] = "Veterans Day";
+  holidays[`${year}-12-25`] = "Christmas Day";
+  holidays[`${year}-12-31`] = "New Year's Eve";
+  
+  // MLK Day (3rd Monday of January)
+  const mlk = new Date(year, 0, 1);
+  mlk.setDate(1 + ((8 - mlk.getDay()) % 7) + 14);
+  holidays[mlk.toISOString().split('T')[0]] = "MLK Day";
+  
+  // Presidents Day (3rd Monday of February)
+  const pres = new Date(year, 1, 1);
+  pres.setDate(1 + ((8 - pres.getDay()) % 7) + 14);
+  holidays[pres.toISOString().split('T')[0]] = "Presidents Day";
+  
+  // Memorial Day (Last Monday of May)
+  const mem = new Date(year, 5, 0);
+  mem.setDate(mem.getDate() - ((mem.getDay() + 6) % 7));
+  holidays[mem.toISOString().split('T')[0]] = "Memorial Day";
+  
+  // Labor Day (1st Monday of September)
+  const labor = new Date(year, 8, 1);
+  labor.setDate(1 + ((8 - labor.getDay()) % 7));
+  holidays[labor.toISOString().split('T')[0]] = "Labor Day";
+  
+  // Columbus Day (2nd Monday of October)
+  const columbus = new Date(year, 9, 1);
+  columbus.setDate(1 + ((8 - columbus.getDay()) % 7) + 7);
+  holidays[columbus.toISOString().split('T')[0]] = "Columbus Day";
+  
+  // Thanksgiving (4th Thursday of November)
+  const thanks = new Date(year, 10, 1);
+  thanks.setDate(1 + ((11 - thanks.getDay()) % 7) + 21);
+  holidays[thanks.toISOString().split('T')[0]] = "Thanksgiving";
+  
+  return holidays;
+};
 export const MonthlyCalendar = ({ onDayClick }: { onDayClick?: (date: Date) => void }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -225,6 +268,9 @@ export const MonthlyCalendar = ({ onDayClick }: { onDayClick?: (date: Date) => v
 
           {Array.from({ length: daysInMonth }).map((_, index) => {
             const day = index + 1;
+            const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const holidays = getHolidays(currentDate.getFullYear());
+            const holiday = holidays[dateStr];
             const dayEvents = events.filter((e) => {
               const eventDate = new Date(e.start_time);
               return (
@@ -241,24 +287,31 @@ export const MonthlyCalendar = ({ onDayClick }: { onDayClick?: (date: Date) => v
             return (
               <Card
                 key={day}
-                className={`aspect-square p-3 transition-all hover:shadow-glow cursor-pointer ${
+                className={`aspect-square p-3 transition-all duration-200 hover:shadow-glow hover:scale-[1.02] cursor-pointer animate-fade-in ${
                   isToday ? "border-primary border-2 bg-primary/5 shadow-glow" : ""
-                }`}
+                } ${holiday ? "bg-accent/10 border-accent/30" : ""}`}
+                style={{ animationDelay: `${index * 10}ms` }}
                 onClick={() => {
                   const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
                   onDayClick?.(clickedDate);
                 }}
               >
                 <div className="flex h-full flex-col">
-                  <div className={`text-sm font-semibold mb-1 ${isToday ? "text-primary" : "text-foreground"}`}>
+                  <div className={`text-sm font-semibold mb-1 flex items-center gap-1 ${isToday ? "text-primary" : holiday ? "text-accent" : "text-foreground"}`}>
                     {day}
+                    {holiday && <Star className="h-3 w-3 text-accent fill-accent" />}
                   </div>
+                  {holiday && (
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 mb-1 border-accent text-accent truncate">
+                      {holiday}
+                    </Badge>
+                  )}
                   <div className="flex flex-col gap-1 overflow-y-auto">
                     {dayEvents.map((event, idx) => (
                       <Badge
                         key={idx}
                         variant={getEventColor(event.event_type) as any}
-                        className="text-xs truncate py-0.5"
+                        className="text-xs truncate py-0.5 animate-scale-in"
                       >
                         {event.title}
                       </Badge>

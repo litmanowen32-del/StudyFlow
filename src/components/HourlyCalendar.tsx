@@ -82,7 +82,6 @@ export const HourlyCalendar = ({ selectedWeek }: { selectedWeek?: Date }) => {
   useEffect(() => {
     if (user) {
       fetchEvents();
-      createSchoolEvents();
       fetchSleepTimes();
     }
   }, [user, currentWeek]);
@@ -556,7 +555,7 @@ export const HourlyCalendar = ({ selectedWeek }: { selectedWeek?: Date }) => {
                       key={event.id}
                       className={`absolute left-1 right-1 ${getEventColor(event.event_type)} rounded p-1 ${
                         resizingEvent?.event.id === event.id ? 'cursor-ns-resize' : 'cursor-move'
-                      } text-white text-xs overflow-hidden shadow-md hover:shadow-lg transition-all group`}
+                      } text-white text-xs overflow-hidden shadow-md hover:shadow-lg transition-all duration-200 group animate-scale-in hover:scale-[1.02]`}
                       style={position}
                       draggable={!resizingEvent}
                       onDragStart={(e) => handleDragStart(e, event)}
@@ -568,13 +567,13 @@ export const HourlyCalendar = ({ selectedWeek }: { selectedWeek?: Date }) => {
                             <div className="text-[10px] opacity-90 truncate">{event.subject}</div>
                           )}
                         </div>
-                        <div className="opacity-0 group-hover:opacity-100 flex gap-1">
+                        <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity duration-200">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setEditDialog({ open: true, event });
                             }}
-                            className="p-0.5 hover:bg-white/20 rounded"
+                            className="p-0.5 hover:bg-white/20 rounded transition-colors"
                           >
                             <Edit className="h-3 w-3" />
                           </button>
@@ -583,7 +582,7 @@ export const HourlyCalendar = ({ selectedWeek }: { selectedWeek?: Date }) => {
                               e.stopPropagation();
                               handleDeleteEvent(event.id);
                             }}
-                            className="p-0.5 hover:bg-white/20 rounded"
+                            className="p-0.5 hover:bg-white/20 rounded transition-colors"
                           >
                             <Trash2 className="h-3 w-3" />
                           </button>
