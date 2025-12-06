@@ -686,6 +686,9 @@ const Study = () => {
 
     const currentQuestion = quizQuestions[currentQuizIndex];
     
+    // Guard against undefined currentQuestion
+    if (!currentQuestion && !showQuizResults) return null;
+    
     if (showQuizResults) {
       const score = Object.values(quizAnswers).filter((answer, idx) => 
         answer === quizQuestions[idx]?.correctAnswer
