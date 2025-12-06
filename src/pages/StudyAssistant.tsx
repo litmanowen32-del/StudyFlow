@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, BookOpen, Sparkles, Upload, X, Send } from "lucide-react";
+import { Loader2, Upload, X, Send, ImageIcon } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -128,88 +127,53 @@ const StudyAssistant = () => {
   };
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-5xl h-[calc(100vh-8rem)] flex flex-col">
-      <div className="mb-6 animate-fade-in">
-        <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-4">
-          <Sparkles className="h-4 w-4" />
-          <span>AI-Powered Learning</span>
-        </div>
-        <h1 className="text-4xl font-bold mb-3 bg-gradient-primary bg-clip-text text-transparent">
-          Study Assistant
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Chat with AI for explanations and study help
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-6 max-w-3xl h-[calc(100vh-6rem)] flex flex-col">
+      <h1 className="text-2xl font-bold mb-4">Study Assistant</h1>
 
-      <Card className="flex-1 flex flex-col shadow-soft border-border/50 overflow-hidden">
-        <CardHeader className="border-b bg-gradient-card pb-4">
-          <CardTitle className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-primary-foreground" />
-            </div>
-            AI Tutor
-          </CardTitle>
-          <CardDescription>
-            Ask questions, upload assignment photos, and get detailed explanations
-          </CardDescription>
-        </CardHeader>
-
-        <ScrollArea className="flex-1 p-6" ref={scrollRef}>
+      <div className="flex-1 flex flex-col bg-card rounded-xl border border-border overflow-hidden">
+        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           {messages.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                  <BookOpen className="w-8 h-8 text-primary" />
-                </div>
-                <p className="text-muted-foreground text-lg">
-                  Start a conversation with your AI tutor
-                </p>
-                <p className="text-muted-foreground/70 text-sm mt-2">
-                  Ask questions or upload images of assignments
-                </p>
-              </div>
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+              <p>Ask a question or upload an image to get started</p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl p-4 ${
+                    className={`max-w-[85%] rounded-xl px-4 py-3 ${
                       message.role === "user"
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted"
                     }`}
                   >
                     {message.images && message.images.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div className="flex flex-wrap gap-2 mb-2">
                         {message.images.map((img, idx) => (
                           <img
                             key={idx}
                             src={img}
                             alt={`Uploaded ${idx + 1}`}
-                            className="rounded-lg w-full h-auto"
+                            className="rounded-lg max-h-32 w-auto"
                           />
                         ))}
                       </div>
                     )}
                     {message.content && (
-                      <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed">
-                        {message.content.split('\n').map((paragraph, pIdx) => (
-                          paragraph.trim() && <p key={pIdx}>{paragraph}</p>
-                        ))}
+                      <div className="text-sm whitespace-pre-wrap">
+                        {message.content}
                       </div>
                     )}
                   </div>
                 </div>
               ))}
               {isLoading && (
-                <div className="flex gap-3 justify-start">
-                  <div className="bg-muted rounded-2xl p-4">
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <div className="flex justify-start">
+                  <div className="bg-muted rounded-xl px-4 py-3">
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   </div>
                 </div>
               )}
@@ -217,26 +181,24 @@ const StudyAssistant = () => {
           )}
         </ScrollArea>
 
-        <CardContent className="border-t p-4">
-          <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="border-t p-3">
+          <form onSubmit={handleSubmit} className="space-y-2">
             {imagePreviews.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {imagePreviews.map((preview, index) => (
-                  <div key={index} className="relative w-20 h-20 rounded-lg border border-border overflow-hidden">
+                  <div key={index} className="relative w-16 h-16 rounded-lg overflow-hidden">
                     <img
                       src={preview}
                       alt={`Upload ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
-                    <Button
+                    <button
                       type="button"
-                      variant="destructive"
-                      size="icon"
                       onClick={() => handleRemoveImage(index)}
-                      className="absolute top-1 right-1 h-5 w-5"
+                      className="absolute top-0.5 right-0.5 bg-destructive text-destructive-foreground rounded-full p-0.5"
                     >
                       <X className="h-3 w-3" />
-                    </Button>
+                    </button>
                   </div>
                 ))}
               </div>
@@ -245,16 +207,17 @@ const StudyAssistant = () => {
             <div className="flex gap-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="icon"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
+                className="shrink-0"
               >
-                <Upload className="h-4 w-4" />
+                <ImageIcon className="h-5 w-5" />
               </Button>
               <Input
                 type="text"
-                placeholder="Ask a question or describe your assignment..."
+                placeholder="Ask anything..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={isLoading}
@@ -264,6 +227,7 @@ const StudyAssistant = () => {
                 type="submit"
                 disabled={isLoading || (!input.trim() && imageFiles.length === 0)}
                 size="icon"
+                className="shrink-0"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -282,8 +246,8 @@ const StudyAssistant = () => {
               className="hidden"
             />
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
