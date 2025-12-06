@@ -777,10 +777,10 @@ const Study = () => {
         </div>
 
         <Card className="p-8 mb-6">
-          <p className="text-xl font-semibold mb-6">{currentQuestion.question}</p>
+          <p className="text-xl font-semibold mb-6">{currentQuestion?.question}</p>
           
           <div className="space-y-3">
-            {currentQuestion.options.map((option: string, idx: number) => (
+            {(currentQuestion?.options || []).map((option: string, idx: number) => (
               <Card
                 key={idx}
                 className={`p-4 cursor-pointer transition-all hover:shadow-lg ${
