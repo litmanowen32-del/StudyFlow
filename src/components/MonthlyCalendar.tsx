@@ -255,15 +255,15 @@ export const MonthlyCalendar = ({ onDayClick }: { onDayClick?: (date: Date) => v
       </div>
 
       <Card className="p-6 shadow-soft border-border/50">
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-3">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-            <div key={day} className="p-3 text-center text-sm font-semibold text-muted-foreground">
+            <div key={day} className="p-3 text-center text-base font-semibold text-muted-foreground">
               {day}
             </div>
           ))}
 
           {Array.from({ length: firstDayOfMonth }).map((_, index) => (
-            <div key={`empty-${index}`} className="aspect-square p-2" />
+            <div key={`empty-${index}`} className="min-h-[120px] p-2" />
           ))}
 
           {Array.from({ length: daysInMonth }).map((_, index) => {
@@ -287,7 +287,7 @@ export const MonthlyCalendar = ({ onDayClick }: { onDayClick?: (date: Date) => v
             return (
               <Card
                 key={day}
-                className={`aspect-square p-3 transition-all duration-200 hover:shadow-glow hover:scale-[1.02] cursor-pointer animate-fade-in ${
+                className={`min-h-[120px] p-4 transition-all duration-200 hover:shadow-glow hover:scale-[1.02] cursor-pointer animate-fade-in ${
                   isToday ? "border-primary border-2 bg-primary/5 shadow-glow" : ""
                 } ${holiday ? "bg-accent/10 border-accent/30" : ""}`}
                 style={{ animationDelay: `${index * 10}ms` }}
@@ -297,21 +297,21 @@ export const MonthlyCalendar = ({ onDayClick }: { onDayClick?: (date: Date) => v
                 }}
               >
                 <div className="flex h-full flex-col">
-                  <div className={`text-sm font-semibold mb-1 flex items-center gap-1 ${isToday ? "text-primary" : holiday ? "text-accent" : "text-foreground"}`}>
+                  <div className={`text-base font-semibold mb-2 flex items-center gap-1 ${isToday ? "text-primary" : holiday ? "text-accent" : "text-foreground"}`}>
                     {day}
-                    {holiday && <Star className="h-3 w-3 text-accent fill-accent" />}
+                    {holiday && <Star className="h-4 w-4 text-accent fill-accent" />}
                   </div>
                   {holiday && (
-                    <Badge variant="outline" className="text-[10px] px-1 py-0 mb-1 border-accent text-accent truncate">
+                    <Badge variant="outline" className="text-xs px-1.5 py-0.5 mb-2 border-accent text-accent truncate">
                       {holiday}
                     </Badge>
                   )}
-                  <div className="flex flex-col gap-1 overflow-y-auto">
+                  <div className="flex flex-col gap-1.5 overflow-y-auto flex-1">
                     {dayEvents.map((event, idx) => (
                       <Badge
                         key={idx}
                         variant={getEventColor(event.event_type) as any}
-                        className="text-xs truncate py-0.5 animate-scale-in"
+                        className="text-sm px-2 py-1 truncate animate-scale-in"
                       >
                         {event.title}
                       </Badge>
