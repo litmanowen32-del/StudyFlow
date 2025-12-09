@@ -361,7 +361,7 @@ export const HourlyCalendar = ({ selectedWeek }: { selectedWeek?: Date }) => {
           end_time: eventEnd.toISOString(),
           event_type: newEvent.event_type,
           subject: newEvent.subject,
-          calendar_view: "hourly",
+          calendar_view: "both",
           is_recurring: true,
           recurring_days: newEvent.selectedDays
         };
@@ -383,7 +383,7 @@ export const HourlyCalendar = ({ selectedWeek }: { selectedWeek?: Date }) => {
         end_time: endTime.toISOString(),
         event_type: newEvent.event_type,
         subject: newEvent.subject,
-        calendar_view: "hourly"
+        calendar_view: "both"
       });
 
       if (!error) {
