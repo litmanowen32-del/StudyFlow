@@ -254,8 +254,8 @@ export const MonthlyCalendar = ({ onDayClick }: { onDayClick?: (date: Date) => v
         </Dialog>
       </div>
 
-      <Card className="p-6 shadow-soft border-border/50 w-full max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-7 gap-3">
+      <Card className="p-8 shadow-soft border-border/50 w-full">
+        <div className="grid grid-cols-7 gap-4">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div key={day} className="p-3 text-center text-base font-semibold text-muted-foreground">
               {day}
