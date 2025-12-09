@@ -4,34 +4,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HourlyCalendar } from "@/components/HourlyCalendar";
 import { MonthlyCalendar } from "@/components/MonthlyCalendar";
 import { PendingTasks } from "@/components/PendingTasks";
-
 const Calendar = () => {
   const [view, setView] = useState<"hourly" | "monthly">("hourly");
   const [selectedWeek, setSelectedWeek] = useState<Date>(new Date());
-
   const handleDayClick = (date: Date) => {
     setSelectedWeek(date);
     setView("hourly");
   };
-
-  return (
-    <div className="w-full px-4 py-8 max-w-[1800px] mx-auto">
+  return <div className="w-full px-4 py-8 max-w-[1800px] mx-auto">
       <div className="mb-8 animate-fade-in">
-        <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary mb-4">
-          <Sparkles className="h-4 w-4" />
-          <span>Smart Scheduling with AI</span>
-        </div>
+        
         <h1 className="text-4xl font-bold mb-3 bg-gradient-primary bg-clip-text text-transparent">
           Calendar
         </h1>
-        <p className="text-lg text-muted-foreground">
-          Drag, resize, and schedule with AI-powered time suggestions
-        </p>
+        <p className="text-lg text-muted-foreground">Manage all the events you have and schedule them on this calendar!</p>
       </div>
 
       <PendingTasks />
 
-      <Tabs value={view} onValueChange={(v) => setView(v as "hourly" | "monthly")} className="space-y-4">
+      <Tabs value={view} onValueChange={v => setView(v as "hourly" | "monthly")} className="space-y-4">
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="hourly" className="transition-all duration-200 data-[state=active]:animate-scale-in">Hourly View</TabsTrigger>
           <TabsTrigger value="monthly" className="transition-all duration-200 data-[state=active]:animate-scale-in">Monthly View</TabsTrigger>
@@ -45,8 +36,6 @@ const Calendar = () => {
           <MonthlyCalendar onDayClick={handleDayClick} />
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 };
-
 export default Calendar;
