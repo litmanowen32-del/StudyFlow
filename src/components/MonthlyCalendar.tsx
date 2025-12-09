@@ -254,7 +254,7 @@ export const MonthlyCalendar = ({ onDayClick }: { onDayClick?: (date: Date) => v
         </Dialog>
       </div>
 
-      <Card className="p-6 shadow-soft border-border/50">
+      <Card className="p-6 shadow-soft border-border/50 w-full max-w-[1400px] mx-auto">
         <div className="grid grid-cols-7 gap-3">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div key={day} className="p-3 text-center text-base font-semibold text-muted-foreground">
@@ -263,7 +263,7 @@ export const MonthlyCalendar = ({ onDayClick }: { onDayClick?: (date: Date) => v
           ))}
 
           {Array.from({ length: firstDayOfMonth }).map((_, index) => (
-            <div key={`empty-${index}`} className="min-h-[120px] p-2" />
+            <div key={`empty-${index}`} className="aspect-square p-2" />
           ))}
 
           {Array.from({ length: daysInMonth }).map((_, index) => {
@@ -287,7 +287,7 @@ export const MonthlyCalendar = ({ onDayClick }: { onDayClick?: (date: Date) => v
             return (
               <Card
                 key={day}
-                className={`min-h-[120px] p-4 transition-all duration-200 hover:shadow-glow hover:scale-[1.02] cursor-pointer animate-fade-in ${
+                className={`aspect-square p-4 transition-all duration-200 hover:shadow-glow hover:scale-[1.02] cursor-pointer animate-fade-in ${
                   isToday ? "border-primary border-2 bg-primary/5 shadow-glow" : ""
                 } ${holiday ? "bg-accent/10 border-accent/30" : ""}`}
                 style={{ animationDelay: `${index * 10}ms` }}
