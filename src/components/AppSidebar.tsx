@@ -1,4 +1,4 @@
-import { Calendar, CheckSquare, Clock, BarChart3, Target, Flame, BookOpen, Settings, LogOut, GraduationCap, Info, Library, Heart, Calculator } from "lucide-react";
+import { Calendar, CheckSquare, Clock, BarChart3, Target, Flame, BookOpen, Settings, LogOut, GraduationCap, Info, Library, Heart, Calculator, FileText } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,20 +41,22 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [studyBuddyEnabled, setStudyBuddyEnabled] = useState(false);
+  const [summarizerEnabled, setSummarizerEnabled] = useState(false);
 
   useEffect(() => {
-    if (user) fetchStudyBuddyPreference();
+    if (user) fetchPreferences();
   }, [user]);
 
-  const fetchStudyBuddyPreference = async () => {
+  const fetchPreferences = async () => {
     const { data } = await supabase
       .from('user_preferences')
-      .select('study_buddy_enabled')
+      .select('study_buddy_enabled, article_summarizer_enabled')
       .eq('user_id', user?.id)
       .single();
     
     if (data) {
       setStudyBuddyEnabled(data.study_buddy_enabled || false);
+      setSummarizerEnabled(data.article_summarizer_enabled || false);
     }
   };
 
@@ -140,6 +142,35 @@ export function AppSidebar() {
                       {!open && (
                         <TooltipContent side="right">
                           <p>Study Buddy</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </SidebarMenuItem>
+                )}
+                {summarizerEnabled && (
+                  <SidebarMenuItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to="/summarizer"
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                                isActive
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+                              )
+                            }
+                          >
+                            <FileText className="h-5 w-5" />
+                            <span>Summarizer</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {!open && (
+                        <TooltipContent side="right">
+                          <p>Summarizer</p>
                         </TooltipContent>
                       )}
                     </Tooltip>

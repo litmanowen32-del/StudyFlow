@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Sparkles, Mail, Upload, BookOpen, RefreshCw, Heart } from "lucide-react";
+import { User, Bell, Palette, Shield, Sparkles, Mail, Upload, BookOpen, RefreshCw, Heart, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,7 @@ const Settings = () => {
   const [sleepStartTime, setSleepStartTime] = useState('23:00');
   const [sleepEndTime, setSleepEndTime] = useState('07:00');
   const [studyBuddyEnabled, setStudyBuddyEnabled] = useState(false);
+  const [summarizerEnabled, setSummarizerEnabled] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -33,6 +34,7 @@ const Settings = () => {
       fetchGoogleConfig();
       fetchSleepPreferences();
       fetchStudyBuddyPreference();
+      fetchSummarizerPreference();
     }
   }, [user]);
 
@@ -347,6 +349,41 @@ const Settings = () => {
     }
   };
 
+  const fetchSummarizerPreference = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('user_preferences')
+      .select('article_summarizer_enabled')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (data) {
+      setSummarizerEnabled(data.article_summarizer_enabled || false);
+    }
+  };
+
+  const updateSummarizerPreference = async (enabled: boolean) => {
+    if (!user) return;
+    
+    const { error } = await supabase
+      .from('user_preferences')
+      .upsert({
+        user_id: user.id,
+        article_summarizer_enabled: enabled,
+      });
+
+    if (error) {
+      toast({ 
+        title: "Error updating summarizer", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } else {
+      setSummarizerEnabled(enabled);
+      toast({ title: enabled ? "Article Summarizer enabled!" : "Article Summarizer disabled" });
+    }
+  };
+
   return (
     <div className="container mx-auto px-6 py-8 max-w-4xl">
       <div className="mb-8 animate-fade-in">
@@ -599,6 +636,33 @@ const Settings = () => {
             <Switch
               checked={studyBuddyEnabled}
               onCheckedChange={updateStudyBuddyPreference}
+            />
+          </div>
+        </Card>
+
+        <Card className="p-6 shadow-soft border-primary/20 bg-gradient-card">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="rounded-lg bg-primary/10 p-2">
+              <FileText className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Article Summarizer</h2>
+              <p className="text-sm text-muted-foreground">
+                AI-powered text summarization
+              </p>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Enable the Article Summarizer to quickly get AI-generated summaries of any article or text.
+          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Enable Article Summarizer</Label>
+              <p className="text-sm text-muted-foreground">Add summarizer to your sidebar</p>
+            </div>
+            <Switch
+              checked={summarizerEnabled}
+              onCheckedChange={updateSummarizerPreference}
             />
           </div>
         </Card>

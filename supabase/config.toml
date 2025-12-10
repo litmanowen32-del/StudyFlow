@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.get-google-config]
 verify_jwt = false
+
+[functions.summarize-article]
+verify_jwt = true
