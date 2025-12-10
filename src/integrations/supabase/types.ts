@@ -431,6 +431,7 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          article_summarizer_enabled: boolean | null
           created_at: string
           focus_duration: number | null
           long_break_duration: number | null
@@ -452,6 +453,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          article_summarizer_enabled?: boolean | null
           created_at?: string
           focus_duration?: number | null
           long_break_duration?: number | null
@@ -473,6 +475,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          article_summarizer_enabled?: boolean | null
           created_at?: string
           focus_duration?: number | null
           long_break_duration?: number | null
