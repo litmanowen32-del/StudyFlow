@@ -1,4 +1,4 @@
-import { Calendar, CheckSquare, Clock, BarChart3, Target, Flame, BookOpen, Settings, LogOut, GraduationCap, Info, Library, Heart } from "lucide-react";
+import { Calendar, CheckSquare, Clock, BarChart3, Target, Flame, BookOpen, Settings, LogOut, GraduationCap, Info, Library, Heart, Calculator } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,6 +32,7 @@ const navItems = [
   { icon: Flame, label: "Habits", path: "/habits" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: BookOpen, label: "Study Assistant", path: "/study-assistant" },
+  { icon: Calculator, label: "Calculator", path: "/calculator" },
   { icon: Library, label: "Study Sets", path: "/study" },
 ];
 
