@@ -432,16 +432,19 @@ export type Database = {
       user_preferences: {
         Row: {
           article_summarizer_enabled: boolean | null
+          calculator_enabled: boolean | null
           created_at: string
           focus_duration: number | null
           long_break_duration: number | null
           notifications_enabled: boolean | null
           onboarding_completed: boolean | null
           referral_source: string | null
+          research_finder_enabled: boolean | null
           school_level: string | null
           short_break_duration: number | null
           sleep_end_time: string | null
           sleep_start_time: string | null
+          study_assistant_enabled: boolean | null
           study_buddy_enabled: boolean | null
           study_buddy_hunger: number | null
           study_buddy_type: string | null
@@ -454,16 +457,19 @@ export type Database = {
         }
         Insert: {
           article_summarizer_enabled?: boolean | null
+          calculator_enabled?: boolean | null
           created_at?: string
           focus_duration?: number | null
           long_break_duration?: number | null
           notifications_enabled?: boolean | null
           onboarding_completed?: boolean | null
           referral_source?: string | null
+          research_finder_enabled?: boolean | null
           school_level?: string | null
           short_break_duration?: number | null
           sleep_end_time?: string | null
           sleep_start_time?: string | null
+          study_assistant_enabled?: boolean | null
           study_buddy_enabled?: boolean | null
           study_buddy_hunger?: number | null
           study_buddy_type?: string | null
@@ -476,16 +482,19 @@ export type Database = {
         }
         Update: {
           article_summarizer_enabled?: boolean | null
+          calculator_enabled?: boolean | null
           created_at?: string
           focus_duration?: number | null
           long_break_duration?: number | null
           notifications_enabled?: boolean | null
           onboarding_completed?: boolean | null
           referral_source?: string | null
+          research_finder_enabled?: boolean | null
           school_level?: string | null
           short_break_duration?: number | null
           sleep_end_time?: string | null
           sleep_start_time?: string | null
+          study_assistant_enabled?: boolean | null
           study_buddy_enabled?: boolean | null
           study_buddy_hunger?: number | null
           study_buddy_type?: string | null

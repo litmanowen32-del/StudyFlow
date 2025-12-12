@@ -31,17 +31,28 @@ const navItems = [
   { icon: Target, label: "Goals", path: "/goals" },
   { icon: Flame, label: "Habits", path: "/habits" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
-  { icon: BookOpen, label: "Study Assistant", path: "/study-assistant" },
-  { icon: Calculator, label: "Calculator", path: "/calculator" },
   { icon: Library, label: "Study Sets", path: "/study" },
 ];
+
+interface OptionalFeatures {
+  studyBuddyEnabled: boolean;
+  summarizerEnabled: boolean;
+  calculatorEnabled: boolean;
+  researchFinderEnabled: boolean;
+  studyAssistantEnabled: boolean;
+}
 
 export function AppSidebar() {
   const { open } = useSidebar();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [studyBuddyEnabled, setStudyBuddyEnabled] = useState(false);
-  const [summarizerEnabled, setSummarizerEnabled] = useState(false);
+  const [features, setFeatures] = useState<OptionalFeatures>({
+    studyBuddyEnabled: false,
+    summarizerEnabled: false,
+    calculatorEnabled: false,
+    researchFinderEnabled: false,
+    studyAssistantEnabled: false,
+  });
 
   useEffect(() => {
     if (user) fetchPreferences();
@@ -50,13 +61,18 @@ export function AppSidebar() {
   const fetchPreferences = async () => {
     const { data } = await supabase
       .from('user_preferences')
-      .select('study_buddy_enabled, article_summarizer_enabled')
+      .select('study_buddy_enabled, article_summarizer_enabled, calculator_enabled, research_finder_enabled, study_assistant_enabled')
       .eq('user_id', user?.id)
       .single();
     
     if (data) {
-      setStudyBuddyEnabled(data.study_buddy_enabled || false);
-      setSummarizerEnabled(data.article_summarizer_enabled || false);
+      setFeatures({
+        studyBuddyEnabled: data.study_buddy_enabled || false,
+        summarizerEnabled: data.article_summarizer_enabled || false,
+        calculatorEnabled: data.calculator_enabled || false,
+        researchFinderEnabled: data.research_finder_enabled || false,
+        studyAssistantEnabled: data.study_assistant_enabled || false,
+      });
     }
   };
 
@@ -118,7 +134,65 @@ export function AppSidebar() {
                     </Tooltip>
                   </SidebarMenuItem>
                 ))}
-                {studyBuddyEnabled && (
+                {features.studyAssistantEnabled && (
+                  <SidebarMenuItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to="/study-assistant"
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                                isActive
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+                              )
+                            }
+                          >
+                            <BookOpen className="h-5 w-5" />
+                            <span>Study Assistant</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {!open && (
+                        <TooltipContent side="right">
+                          <p>Study Assistant</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </SidebarMenuItem>
+                )}
+                {features.calculatorEnabled && (
+                  <SidebarMenuItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to="/calculator"
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                                isActive
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+                              )
+                            }
+                          >
+                            <Calculator className="h-5 w-5" />
+                            <span>Calculator</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {!open && (
+                        <TooltipContent side="right">
+                          <p>Calculator</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </SidebarMenuItem>
+                )}
+                {features.studyBuddyEnabled && (
                   <SidebarMenuItem>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -147,7 +221,7 @@ export function AppSidebar() {
                     </Tooltip>
                   </SidebarMenuItem>
                 )}
-                {summarizerEnabled && (
+                {features.summarizerEnabled && (
                   <SidebarMenuItem>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -176,33 +250,35 @@ export function AppSidebar() {
                     </Tooltip>
                   </SidebarMenuItem>
                 )}
-                <SidebarMenuItem>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SidebarMenuButton asChild>
-                        <NavLink
-                          to="/research"
-                          className={({ isActive }) =>
-                            cn(
-                              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                              isActive
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                            )
-                          }
-                        >
-                          <Search className="h-5 w-5" />
-                          <span>Research Finder</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </TooltipTrigger>
-                    {!open && (
-                      <TooltipContent side="right">
-                        <p>Research Finder</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </SidebarMenuItem>
+                {features.researchFinderEnabled && (
+                  <SidebarMenuItem>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to="/research"
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
+                                isActive
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+                              )
+                            }
+                          >
+                            <Search className="h-5 w-5" />
+                            <span>Research Finder</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {!open && (
+                        <TooltipContent side="right">
+                          <p>Research Finder</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </SidebarMenuItem>
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
