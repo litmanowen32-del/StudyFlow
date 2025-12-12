@@ -24,6 +24,7 @@ import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import Calculator from "./pages/Calculator";
 import Summarizer from "./pages/Summarizer";
+import ResearchFinder from "./pages/ResearchFinder";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const App = () => (
           <Route path="/study-assistant" element={<ProtectedRoute><AppLayout><StudyAssistant /></AppLayout></ProtectedRoute>} />
           <Route path="/calculator" element={<ProtectedRoute><AppLayout><Calculator /></AppLayout></ProtectedRoute>} />
           <Route path="/summarizer" element={<ProtectedRoute><AppLayout><Summarizer /></AppLayout></ProtectedRoute>} />
+          <Route path="/research" element={<ProtectedRoute><AppLayout><ResearchFinder /></AppLayout></ProtectedRoute>} />
           <Route path="/study" element={<ProtectedRoute><AppLayout><Study /></AppLayout></ProtectedRoute>} />
           <Route path="/study-buddy" element={<ProtectedRoute><AppLayout><StudyBuddy /></AppLayout></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
