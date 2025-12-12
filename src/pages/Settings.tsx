@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Bell, Palette, Shield, Sparkles, Mail, Upload, BookOpen, RefreshCw, Heart, FileText } from "lucide-react";
+import { User, Bell, Palette, Shield, Sparkles, Mail, Upload, BookOpen, RefreshCw, Heart, FileText, Calculator, Search, MessageSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -26,6 +26,9 @@ const Settings = () => {
   const [sleepEndTime, setSleepEndTime] = useState('07:00');
   const [studyBuddyEnabled, setStudyBuddyEnabled] = useState(false);
   const [summarizerEnabled, setSummarizerEnabled] = useState(false);
+  const [calculatorEnabled, setCalculatorEnabled] = useState(false);
+  const [researchFinderEnabled, setResearchFinderEnabled] = useState(false);
+  const [studyAssistantEnabled, setStudyAssistantEnabled] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -33,8 +36,7 @@ const Settings = () => {
       checkGoogleConnection();
       fetchGoogleConfig();
       fetchSleepPreferences();
-      fetchStudyBuddyPreference();
-      fetchSummarizerPreference();
+      fetchOptionalFeatures();
     }
   }, [user]);
 
@@ -314,73 +316,73 @@ const Settings = () => {
     }
   };
 
-  const fetchStudyBuddyPreference = async () => {
+  const fetchOptionalFeatures = async () => {
     if (!user) return;
     const { data } = await supabase
       .from('user_preferences')
-      .select('study_buddy_enabled')
+      .select('study_buddy_enabled, article_summarizer_enabled, calculator_enabled, research_finder_enabled, study_assistant_enabled')
       .eq('user_id', user.id)
       .single();
     
     if (data) {
       setStudyBuddyEnabled(data.study_buddy_enabled || false);
-    }
-  };
-
-  const updateStudyBuddyPreference = async (enabled: boolean) => {
-    if (!user) return;
-    
-    const { error } = await supabase
-      .from('user_preferences')
-      .upsert({
-        user_id: user.id,
-        study_buddy_enabled: enabled,
-      });
-
-    if (error) {
-      toast({ 
-        title: "Error updating study buddy", 
-        description: error.message,
-        variant: "destructive" 
-      });
-    } else {
-      setStudyBuddyEnabled(enabled);
-      toast({ title: enabled ? "Study Buddy enabled!" : "Study Buddy disabled" });
-    }
-  };
-
-  const fetchSummarizerPreference = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from('user_preferences')
-      .select('article_summarizer_enabled')
-      .eq('user_id', user.id)
-      .single();
-    
-    if (data) {
       setSummarizerEnabled(data.article_summarizer_enabled || false);
+      setCalculatorEnabled(data.calculator_enabled || false);
+      setResearchFinderEnabled(data.research_finder_enabled || false);
+      setStudyAssistantEnabled(data.study_assistant_enabled || false);
     }
   };
 
-  const updateSummarizerPreference = async (enabled: boolean) => {
+  const updateOptionalFeature = async (feature: string, enabled: boolean) => {
     if (!user) return;
     
     const { error } = await supabase
       .from('user_preferences')
       .upsert({
         user_id: user.id,
-        article_summarizer_enabled: enabled,
-      });
+        [feature]: enabled,
+      } as any);
 
     if (error) {
       toast({ 
-        title: "Error updating summarizer", 
+        title: "Error updating preference", 
         description: error.message,
         variant: "destructive" 
       });
-    } else {
+      return false;
+    }
+    
+    toast({ title: enabled ? "Feature enabled!" : "Feature disabled" });
+    return true;
+  };
+
+  const handleStudyBuddyToggle = async (enabled: boolean) => {
+    if (await updateOptionalFeature('study_buddy_enabled', enabled)) {
+      setStudyBuddyEnabled(enabled);
+    }
+  };
+
+  const handleSummarizerToggle = async (enabled: boolean) => {
+    if (await updateOptionalFeature('article_summarizer_enabled', enabled)) {
       setSummarizerEnabled(enabled);
-      toast({ title: enabled ? "Article Summarizer enabled!" : "Article Summarizer disabled" });
+    }
+  };
+
+  const handleCalculatorToggle = async (enabled: boolean) => {
+    if (await updateOptionalFeature('calculator_enabled', enabled)) {
+      setCalculatorEnabled(enabled);
+    }
+  };
+
+  const handleResearchFinderToggle = async (enabled: boolean) => {
+    if (await updateOptionalFeature('research_finder_enabled', enabled)) {
+      setResearchFinderEnabled(enabled);
+    }
+  };
+
+  const handleStudyAssistantToggle = async (enabled: boolean) => {
+    if (await updateOptionalFeature('study_assistant_enabled', enabled)) {
+      setStudyAssistantEnabled(enabled);
     }
   };
 
@@ -616,54 +618,81 @@ const Settings = () => {
         <Card className="p-6 shadow-soft border-primary/20 bg-gradient-card">
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-lg bg-primary/10 p-2">
-              <Heart className="h-5 w-5 text-primary" />
+              <Sparkles className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold">Study Buddy</h2>
+              <h2 className="text-xl font-semibold">Optional Features</h2>
               <p className="text-sm text-muted-foreground">
-                Earn XP and feed your virtual companion
+                Enable or disable features to customize your sidebar
               </p>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">
-            Enable Study Buddy to get a cute companion that you can feed with XP earned by completing tasks!
-          </p>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Enable Study Buddy</Label>
-              <p className="text-sm text-muted-foreground">Unlock your virtual study companion</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-primary" />
+                  Study Buddy
+                </Label>
+                <p className="text-sm text-muted-foreground">Earn XP with a virtual companion</p>
+              </div>
+              <Switch
+                checked={studyBuddyEnabled}
+                onCheckedChange={handleStudyBuddyToggle}
+              />
             </div>
-            <Switch
-              checked={studyBuddyEnabled}
-              onCheckedChange={updateStudyBuddyPreference}
-            />
-          </div>
-        </Card>
-
-        <Card className="p-6 shadow-soft border-primary/20 bg-gradient-card">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="rounded-lg bg-primary/10 p-2">
-              <FileText className="h-5 w-5 text-primary" />
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  Article Summarizer
+                </Label>
+                <p className="text-sm text-muted-foreground">AI-powered text summarization & quotes</p>
+              </div>
+              <Switch
+                checked={summarizerEnabled}
+                onCheckedChange={handleSummarizerToggle}
+              />
             </div>
-            <div>
-              <h2 className="text-xl font-semibold">Article Summarizer</h2>
-              <p className="text-sm text-muted-foreground">
-                AI-powered text summarization
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="flex items-center gap-2">
+                  <Calculator className="h-4 w-4 text-primary" />
+                  Calculator
+                </Label>
+                <p className="text-sm text-muted-foreground">Scientific calculator for math problems</p>
+              </div>
+              <Switch
+                checked={calculatorEnabled}
+                onCheckedChange={handleCalculatorToggle}
+              />
             </div>
-          </div>
-          <p className="text-sm text-muted-foreground mb-4">
-            Enable the Article Summarizer to quickly get AI-generated summaries of any article or text.
-          </p>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Enable Article Summarizer</Label>
-              <p className="text-sm text-muted-foreground">Add summarizer to your sidebar</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="flex items-center gap-2">
+                  <Search className="h-4 w-4 text-primary" />
+                  Research Finder
+                </Label>
+                <p className="text-sm text-muted-foreground">Find trustworthy research articles</p>
+              </div>
+              <Switch
+                checked={researchFinderEnabled}
+                onCheckedChange={handleResearchFinderToggle}
+              />
             </div>
-            <Switch
-              checked={summarizerEnabled}
-              onCheckedChange={updateSummarizerPreference}
-            />
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-primary" />
+                  Study Assistant
+                </Label>
+                <p className="text-sm text-muted-foreground">AI chat for study help</p>
+              </div>
+              <Switch
+                checked={studyAssistantEnabled}
+                onCheckedChange={handleStudyAssistantToggle}
+              />
+            </div>
           </div>
         </Card>
 
