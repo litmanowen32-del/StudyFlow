@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { MobileNav } from "@/components/MobileNav";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -31,14 +32,23 @@ const queryClient = new QueryClient();
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
         <main className="flex-1 overflow-auto">
-          <div className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
-            <SidebarTrigger />
+          {/* Desktop header */}
+          <div className="sticky top-0 z-40 hidden md:flex h-16 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-6">
+            <SidebarTrigger className="hover:bg-muted rounded-lg" />
+            <div className="flex-1" />
           </div>
-          {children}
+          {/* Mobile header */}
+          <div className="sticky top-0 z-40 flex md:hidden h-14 items-center justify-center border-b border-border/50 bg-background/80 backdrop-blur-xl px-4">
+            <span className="font-display font-bold text-foreground">StudyFlow</span>
+          </div>
+          <div className="pb-20 md:pb-0">
+            {children}
+          </div>
         </main>
+        <MobileNav />
       </div>
     </SidebarProvider>
   );

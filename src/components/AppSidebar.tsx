@@ -81,20 +81,50 @@ export function AppSidebar() {
     navigate("/");
   };
 
+  const NavItem = ({ item }: { item: typeof navItems[0] }) => (
+    <SidebarMenuItem>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <SidebarMenuButton asChild>
+            <NavLink
+              to={item.path}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200",
+                  isActive
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-glow"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )
+              }
+            >
+              <item.icon className="h-5 w-5" />
+              <span className="font-medium">{item.label}</span>
+            </NavLink>
+          </SidebarMenuButton>
+        </TooltipTrigger>
+        {!open && (
+          <TooltipContent side="right" className="font-medium">
+            <p>{item.label}</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </SidebarMenuItem>
+  );
+
   return (
     <TooltipProvider delayDuration={300}>
-      <Sidebar collapsible="icon" className="border-r border-border">
-        <SidebarContent>
+      <Sidebar collapsible="icon" className="border-r-0 hidden md:flex">
+        <SidebarContent className="bg-sidebar">
           {/* Logo Section */}
           <SidebarGroup>
-            <div className="flex items-center gap-2 px-4 py-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-primary">
+            <div className="flex items-center gap-3 px-4 py-6">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-primary shadow-glow">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
               {open && (
                 <div className="flex flex-col">
-                  <span className="text-lg font-bold text-foreground">StudyFlow</span>
-                  <span className="text-xs text-muted-foreground">Productivity Suite</span>
+                  <span className="text-lg font-bold text-sidebar-foreground font-display">StudyFlow</span>
+                  <span className="text-xs text-sidebar-foreground/60">Productivity Suite</span>
                 </div>
               )}
             </div>
@@ -102,264 +132,60 @@ export function AppSidebar() {
 
           {/* Main Navigation */}
           <SidebarGroup>
-            <SidebarGroupLabel>Main</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
+            <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs font-semibold uppercase tracking-wider px-4">
+              Main
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="px-2">
+              <SidebarMenu className="space-y-1">
                 {navItems.map((item) => (
-                  <SidebarMenuItem key={item.path}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to={item.path}
-                            className={({ isActive }) =>
-                              cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                                isActive
-                                  ? "bg-primary/10 text-primary font-medium"
-                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                              )
-                            }
-                          >
-                            <item.icon className="h-5 w-5" />
-                            <span>{item.label}</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {!open && (
-                        <TooltipContent side="right">
-                          <p>{item.label}</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </SidebarMenuItem>
+                  <NavItem key={item.path} item={item} />
                 ))}
                 {features.studyAssistantEnabled && (
-                  <SidebarMenuItem>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to="/study-assistant"
-                            className={({ isActive }) =>
-                              cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                                isActive
-                                  ? "bg-primary/10 text-primary font-medium"
-                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                              )
-                            }
-                          >
-                            <BookOpen className="h-5 w-5" />
-                            <span>Study Assistant</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {!open && (
-                        <TooltipContent side="right">
-                          <p>Study Assistant</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </SidebarMenuItem>
+                  <NavItem item={{ icon: BookOpen, label: "Study Assistant", path: "/study-assistant" }} />
                 )}
                 {features.calculatorEnabled && (
-                  <SidebarMenuItem>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to="/calculator"
-                            className={({ isActive }) =>
-                              cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                                isActive
-                                  ? "bg-primary/10 text-primary font-medium"
-                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                              )
-                            }
-                          >
-                            <Calculator className="h-5 w-5" />
-                            <span>Calculator</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {!open && (
-                        <TooltipContent side="right">
-                          <p>Calculator</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </SidebarMenuItem>
+                  <NavItem item={{ icon: Calculator, label: "Calculator", path: "/calculator" }} />
                 )}
                 {features.studyBuddyEnabled && (
-                  <SidebarMenuItem>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to="/study-buddy"
-                            className={({ isActive }) =>
-                              cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                                isActive
-                                  ? "bg-primary/10 text-primary font-medium"
-                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                              )
-                            }
-                          >
-                            <Heart className="h-5 w-5" />
-                            <span>Study Buddy</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {!open && (
-                        <TooltipContent side="right">
-                          <p>Study Buddy</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </SidebarMenuItem>
+                  <NavItem item={{ icon: Heart, label: "Study Buddy", path: "/study-buddy" }} />
                 )}
                 {features.summarizerEnabled && (
-                  <SidebarMenuItem>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to="/summarizer"
-                            className={({ isActive }) =>
-                              cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                                isActive
-                                  ? "bg-primary/10 text-primary font-medium"
-                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                              )
-                            }
-                          >
-                            <FileText className="h-5 w-5" />
-                            <span>Summarizer</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {!open && (
-                        <TooltipContent side="right">
-                          <p>Summarizer</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </SidebarMenuItem>
+                  <NavItem item={{ icon: FileText, label: "Summarizer", path: "/summarizer" }} />
                 )}
                 {features.researchFinderEnabled && (
-                  <SidebarMenuItem>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to="/research"
-                            className={({ isActive }) =>
-                              cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                                isActive
-                                  ? "bg-primary/10 text-primary font-medium"
-                                  : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                              )
-                            }
-                          >
-                            <Search className="h-5 w-5" />
-                            <span>Research Finder</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {!open && (
-                        <TooltipContent side="right">
-                          <p>Research Finder</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </SidebarMenuItem>
+                  <NavItem item={{ icon: Search, label: "Research Finder", path: "/research" }} />
                 )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
 
           {/* Settings */}
-          <SidebarGroup>
-            <SidebarGroupLabel>Preferences</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SidebarMenuButton asChild>
-                        <NavLink
-                          to="/settings"
-                          className={({ isActive }) =>
-                            cn(
-                              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                              isActive
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                            )
-                          }
-                        >
-                          <Settings className="h-5 w-5" />
-                          <span>Settings</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </TooltipTrigger>
-                    {!open && (
-                      <TooltipContent side="right">
-                        <p>Settings</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SidebarMenuButton asChild>
-                        <NavLink
-                          to="/about"
-                          className={({ isActive }) =>
-                            cn(
-                              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
-                              isActive
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
-                            )
-                          }
-                        >
-                          <Info className="h-5 w-5" />
-                          <span>About</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </TooltipTrigger>
-                    {!open && (
-                      <TooltipContent side="right">
-                        <p>About</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </SidebarMenuItem>
+          <SidebarGroup className="mt-auto">
+            <SidebarGroupLabel className="text-sidebar-foreground/50 text-xs font-semibold uppercase tracking-wider px-4">
+              Preferences
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="px-2">
+              <SidebarMenu className="space-y-1">
+                <NavItem item={{ icon: Settings, label: "Settings", path: "/settings" }} />
+                <NavItem item={{ icon: Info, label: "About", path: "/about" }} />
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
 
         {/* Footer */}
-        <SidebarFooter>
+        <SidebarFooter className="bg-sidebar border-t border-sidebar-border">
           {user && (
-            <div className="p-4">
+            <div className="p-3">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+                    className="w-full justify-start gap-3 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-xl"
                     onClick={handleSignOut}
                   >
                     <LogOut className="h-5 w-5" />
-                    {open && <span>Sign Out</span>}
+                    {open && <span className="font-medium">Sign Out</span>}
                   </Button>
                 </TooltipTrigger>
                 {!open && (
