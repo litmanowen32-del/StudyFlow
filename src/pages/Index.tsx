@@ -13,7 +13,7 @@ const Index = () => {
   }
 
   if (user) {
-    return <Navigate to="/calendar" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   const features = [
