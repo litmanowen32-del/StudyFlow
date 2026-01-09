@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Calendar,
   CheckSquare,
@@ -15,6 +16,7 @@ import {
   Heart,
   Gamepad2,
   MessageSquare,
+  Sparkles,
 } from "lucide-react";
 
 const pages = [
@@ -121,6 +123,27 @@ const pages = [
 const Home = () => {
   return (
     <div className="p-6 md:p-8">
+      {/* AI Schedule Builder CTA */}
+      <Card className="mb-8 p-6 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-lg">
+              <Sparkles className="h-7 w-7 text-primary-foreground" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-foreground">Build Your Perfect Schedule</h2>
+              <p className="text-muted-foreground">Take a quick quiz and let AI create a personalized study plan for you</p>
+            </div>
+          </div>
+          <Link to="/schedule-quiz">
+            <Button className="bg-gradient-primary shadow-glow">
+              <Sparkles className="mr-2 h-4 w-4" />
+              Start Quiz
+            </Button>
+          </Link>
+        </div>
+      </Card>
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground font-display mb-2">
           Welcome to StudyFlow

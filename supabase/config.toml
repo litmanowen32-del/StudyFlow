@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.research-articles]
 verify_jwt = true
+
+[functions.generate-schedule]
+verify_jwt = false
