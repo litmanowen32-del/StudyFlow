@@ -1,4 +1,4 @@
-import { Calendar, CheckSquare, Clock, BarChart3, Target, Flame, BookOpen, Settings, LogOut, GraduationCap, Info, Library, Heart, Calculator, FileText, Search } from "lucide-react";
+import { Calendar, CheckSquare, Clock, BarChart3, Target, Flame, BookOpen, Settings, LogOut, GraduationCap, Info, Library, Heart, Calculator, FileText, Search, Home } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/tooltip";
 
 const navItems = [
+  { icon: Home, label: "Home", path: "/home" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Clock, label: "Focus Timer", path: "/focus" },
