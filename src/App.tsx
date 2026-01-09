@@ -27,6 +27,7 @@ import NotFound from "./pages/NotFound";
 import Calculator from "./pages/Calculator";
 import Summarizer from "./pages/Summarizer";
 import ResearchFinder from "./pages/ResearchFinder";
+import ScheduleQuiz from "./pages/ScheduleQuiz";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/schedule-quiz" element={<ProtectedRoute><ScheduleQuiz /></ProtectedRoute>} />
           <Route path="/home" element={<ProtectedRoute><AppLayout><Home /></AppLayout></ProtectedRoute>} />
           <Route path="/calendar" element={<ProtectedRoute><AppLayout><Calendar /></AppLayout></ProtectedRoute>} />
           <Route path="/tasks" element={<ProtectedRoute><AppLayout><Tasks /></AppLayout></ProtectedRoute>} />
