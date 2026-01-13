@@ -5,12 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { MobileNav } from "@/components/MobileNav";
+import { Home as HomeIcon } from "lucide-react";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
-import Home from "./pages/Home";
+import HomePage from "./pages/Home";
 import Auth from "./pages/Auth";
 import Calendar from "./pages/Calendar";
 import Tasks from "./pages/Tasks";
@@ -31,28 +29,28 @@ import ScheduleQuiz from "./pages/ScheduleQuiz";
 
 const queryClient = new QueryClient();
 
-const AppLayout = ({ children }: { children: React.ReactNode }) => {
+const AppLayout = ({ children, showHomeButton = true }: { children: React.ReactNode; showHomeButton?: boolean }) => {
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
-        <main className="flex-1 overflow-auto">
-          {/* Desktop header */}
-          <div className="sticky top-0 z-40 hidden md:flex h-16 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-6">
-            <SidebarTrigger className="hover:bg-muted rounded-lg" />
-            <div className="flex-1" />
-          </div>
-          {/* Mobile header */}
-          <div className="sticky top-0 z-40 flex md:hidden h-14 items-center justify-center border-b border-border/50 bg-background/80 backdrop-blur-xl px-4">
-            <span className="font-display font-bold text-foreground">StudyFlow</span>
-          </div>
-          <div className="pb-20 md:pb-0">
-            {children}
-          </div>
-        </main>
-        <MobileNav />
-      </div>
-    </SidebarProvider>
+    <div className="min-h-screen w-full bg-background">
+      <header className="sticky top-0 z-40 flex h-14 md:h-16 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 md:px-6">
+        {showHomeButton && (
+          <a 
+            href="/home" 
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <HomeIcon className="h-5 w-5" />
+            <span className="hidden sm:inline font-medium">Home</span>
+          </a>
+        )}
+        <div className="flex-1 flex justify-center">
+          <span className="font-display font-bold text-foreground">StudyFlow</span>
+        </div>
+        {showHomeButton && <div className="w-16 sm:w-20" />}
+      </header>
+      <main className="overflow-auto">
+        {children}
+      </main>
+    </div>
   );
 };
 
@@ -68,7 +66,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/schedule-quiz" element={<ProtectedRoute><ScheduleQuiz /></ProtectedRoute>} />
-          <Route path="/home" element={<ProtectedRoute><AppLayout><Home /></AppLayout></ProtectedRoute>} />
+          <Route path="/home" element={<ProtectedRoute><AppLayout showHomeButton={false}><HomePage /></AppLayout></ProtectedRoute>} />
           <Route path="/calendar" element={<ProtectedRoute><AppLayout><Calendar /></AppLayout></ProtectedRoute>} />
           <Route path="/tasks" element={<ProtectedRoute><AppLayout><Tasks /></AppLayout></ProtectedRoute>} />
           <Route path="/focus" element={<ProtectedRoute><AppLayout><Focus /></AppLayout></ProtectedRoute>} />
