@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Home as HomeIcon } from "lucide-react";
 import { ThemeProvider } from "next-themes";
+import studyflowLogo from "@/assets/studyflow-logo.png";
 import Index from "./pages/Index";
 import HomePage from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -43,7 +44,7 @@ const AppLayout = ({ children, showHomeButton = true }: { children: React.ReactN
           </a>
         )}
         <div className="flex-1 flex justify-center">
-          <span className="font-display font-bold text-foreground">StudyFlow</span>
+          <img src={studyflowLogo} alt="Studyflow" className="h-10 md:h-12 object-contain" />
         </div>
         {showHomeButton && <div className="w-16 sm:w-20" />}
       </header>
