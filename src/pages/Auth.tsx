@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar } from "lucide-react";
+import studyflowLogo from "@/assets/studyflow-logo.png";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -36,10 +36,8 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md p-8 shadow-glow">
         <div className="mb-8 flex flex-col items-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-lg bg-gradient-primary">
-            <Calendar className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground">Welcome to StudyFlow</h1>
+          <img src={studyflowLogo} alt="Studyflow" className="h-24 mb-4 object-contain" />
+          <h1 className="text-3xl font-bold text-foreground">Welcome to Studyflow</h1>
           <p className="mt-2 text-center text-muted-foreground">
             Your ultimate productivity companion for students
           </p>
