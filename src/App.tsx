@@ -44,7 +44,7 @@ const AppLayout = ({ children, showHomeButton = true }: { children: React.ReactN
           </a>
         )}
         <div className="flex-1 flex justify-center">
-          <img src={studyflowLogo} alt="Studyflow" className="h-10 md:h-12 object-contain" />
+          <img src={studyflowLogo} alt="Studyflow" className="h-14 md:h-16 object-contain" />
         </div>
         {showHomeButton && <div className="w-16 sm:w-20" />}
       </header>
