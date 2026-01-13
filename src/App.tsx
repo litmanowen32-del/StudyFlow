@@ -33,7 +33,7 @@ const queryClient = new QueryClient();
 const AppLayout = ({ children, showHomeButton = true }: { children: React.ReactNode; showHomeButton?: boolean }) => {
   return (
     <div className="min-h-screen w-full bg-background">
-      <header className="sticky top-0 z-40 flex h-14 md:h-16 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 md:px-6">
+      <header className="sticky top-0 z-40 flex h-36 md:h-44 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 md:px-6">
         {showHomeButton && (
           <a 
             href="/home" 
@@ -44,7 +44,7 @@ const AppLayout = ({ children, showHomeButton = true }: { children: React.ReactN
           </a>
         )}
         <div className="flex-1 flex justify-center">
-          <img src={studyflowLogo} alt="Studyflow" className="h-20 md:h-24 object-contain" />
+          <img src={studyflowLogo} alt="Studyflow" className="h-32 md:h-40 object-contain" />
         </div>
         {showHomeButton && <div className="w-16 sm:w-20" />}
       </header>
