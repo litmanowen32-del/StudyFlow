@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Home as HomeIcon } from "lucide-react";
 import { ThemeProvider } from "next-themes";
-import studyflowLogo from "@/assets/studyflow-logo-new.png";
+import studyflowLogo from "@/assets/studyflow-logo.png";
 import Index from "./pages/Index";
 import HomePage from "./pages/Home";
 import Auth from "./pages/Auth";
