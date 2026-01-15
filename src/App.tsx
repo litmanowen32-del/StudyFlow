@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Home as HomeIcon } from "lucide-react";
 import { ThemeProvider } from "next-themes";
-import studyflowLogo from "@/assets/studyflow-logo.png";
+import studyflowLogo from "@/assets/studyflow-logo-new.png";
 import Index from "./pages/Index";
 import HomePage from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -33,20 +33,14 @@ const queryClient = new QueryClient();
 const AppLayout = ({ children, showHomeButton = true }: { children: React.ReactNode; showHomeButton?: boolean }) => {
   return (
     <div className="min-h-screen w-full bg-background">
-      <header className="sticky top-0 z-40 flex h-36 md:h-44 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 md:px-6">
-        {showHomeButton && (
-          <a 
-            href="/home" 
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <HomeIcon className="h-5 w-5" />
-            <span className="hidden sm:inline font-medium">Home</span>
-          </a>
-        )}
-        <div className="flex-1 flex justify-center">
-          <img src={studyflowLogo} alt="Studyflow" className="h-32 md:h-40 object-contain" />
-        </div>
-        {showHomeButton && <div className="w-16 sm:w-20" />}
+      <header className="sticky top-0 z-40 flex h-14 md:h-16 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 md:px-6">
+        <a 
+          href="/home" 
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <img src={studyflowLogo} alt="Studyflow" className="h-10 md:h-12 object-contain" />
+        </a>
+        <div className="flex-1" />
       </header>
       <main className="overflow-auto">
         {children}
