@@ -18,7 +18,7 @@ const Auth = () => {
     e.preventDefault();
     const { error } = await signIn(email, password);
     if (!error) {
-      navigate("/calendar");
+      navigate("/home");
     }
   };
 
@@ -28,7 +28,7 @@ const Auth = () => {
     if (!error) {
       // Auto sign in after signup since email is auto-confirmed
       await signIn(email, password);
-      navigate("/calendar");
+      navigate("/home");
     }
   };
 
